@@ -322,12 +322,17 @@ Models: snowflake-arctic-embed-l-v2.0, snowflake-arctic-embed-l-v2.0-8k, nv-embe
 
 ### Cortex Analyst
 
+**Model Selection:** You cannot choose a model directly. Instead, Cortex Analyst assigns each request to a model, or to a combination of models, taking into account the following factors:
+- The models available in your Snowflake region.
+- The account’s cross-region inference configuration.
+- Any model-level RBAC restrictions you have established.
+
 ### Cortex Fine Tuning
 
 Privileges:
 
 - CREATE MODEL or OWNERSHIP on schema  
-- **GRANT** **CREATE** **MODEL** **ON** **SCHEMA** my\_schema **TO** **ROLE** my\_role**;**  
+- `**GRANT** **CREATE** **MODEL** **ON** **SCHEMA** my\_schema **TO** **ROLE** my\_role**;**`
 - Usage on database  
 - SNOWFLAKE.CORTEX\_USER database role  
 - OWNERSHIP privilege on the model is required to access the fine-tuned model’s artifacts
@@ -337,7 +342,7 @@ Cost Considerations:
 - Fine-tuning trained tokens \= number of input tokens \* number of epochs trained  
 - For the COMPLETE function, which generates new text in the response, both input and output tokens are counted.  
 - Finetune **’Describe’** also shows token usage  
-- Also in **CORTEX\_FINE\_TUNING\_USAGE\_HISTORY**
+- Also in `**CORTEX\_FINE\_TUNING\_USAGE\_HISTORY**`
 
 Considerations:
 
@@ -351,89 +356,118 @@ Considerations:
 - table or view and the query result must contain columns named prompt and completion
 
 4 cases of fine tuning \-   
-SNOWFLAKE.CORTEX.FINETUNE **(**  
+```sql
+SNOWFLAKE.CORTEX.FINETUNE( 
   { 'CREATE' | 'SHOW' | 'DESCRIBE' | 'CANCEL' }  
   ...  
   )
+```
 
-SNOWFLAKE.CORTEX.FINETUNE**(**  
-  'CREATE',  
-  '\<new\_model\_name\>',  
-  '\<base\_model\>',  
-  '\<training\_data\_query\>'  
-  \[  
-    , '\<validation\_data\_query\>'  
-    \[, '\<options\>' \]  
-  \]  
+```sql
+SNOWFLAKE.CORTEX.FINETUNE(
+  'CREATE',
+  '<name>',
+  '<base_model>',
+  '<training_data_query>'
+  [
+    , '<validation_data_query>'
+    [, '<options>' ]
+  ]
 )
+```
 
-**SELECT** SNOWFLAKE.CORTEX.FINETUNE**(**  
-  'CREATE'**,**  
-  'my\_tuned\_model'**,**  
-  'mistral-7b'**,**  
-  'SELECT prompt, completion FROM train'**,**  
-  'SELECT prompt, completion FROM validation'  
-**);**
+```sql
+SELECT SNOWFLAKE.CORTEX.FINETUNE(
+  'CREATE',
+  'my_tuned_model',
+  'mistral-7b',
+  'SELECT prompt, completion FROM train',
+  'SELECT prompt, completion FROM validation'
+);
+```
 
-SNOWFLAKE.CORTEX.FINETUNE**(**  
-  'DESCRIBE',  
-  '\<finetune\_job\_id\>'  
-)  
-{  
-  "base\_model":"mistral-7b",  
-  "created\_on":1717004388348,  
-  "finished\_on":1717004691577,  
-  "id":"ft\_6556e15c-8f12-4d94-8cb0-87e6f2fd2299",  
-  "model":"mydb.myschema.my\_tuned\_model",  
-  "progress":1.0,  
-  "status":"SUCCESS",  
-  "training\_data":"SELECT prompt, completion FROM train",  
-  "trained\_tokens":2670734,  
-  "training\_result":{"validation\_loss":1.0138969421386719,"training\_loss":0.6477728401547047},  
-  "validation\_data":"SELECT prompt, completion FROM validation",  
-  "options":{"max\_epochs":3}  
+```sql
+SNOWFLAKE.CORTEX.FINETUNE(
+  'DESCRIBE',
+  '<finetune_job_id>'
+)
+```
+
+```json
+{
+  "base_model":"mistral-7b",
+  "created_on":1717004388348,
+  "finished_on":1717004691577,
+  "id":"ft_6556e15c-8f12-4d94-8cb0-87e6f2fd2299",
+  "model":"mydb.myschema.my_tuned_model",
+  "progress":1.0,
+  "status":"SUCCESS",
+  "training_data":"SELECT prompt, completion FROM train",
+  "trained_tokens":2670734,
+  "training_result":{"validation_loss":1.0138969421386719,"training_loss":0.6477728401547047},
+  "validation_data":"SELECT prompt, completion FROM validation",
+  "options":{"max_epochs":3}
 }
+```
 
-SNOWFLAKE.CORTEX.FINETUNE**(**'SHOW')
+```sql
+SNOWFLAKE.CORTEX.FINETUNE**('SHOW')
+```
 
-SNOWFLAKE.CORTEX.FINETUNE**(**  
+```sql
+SNOWFLAKE.CORTEX.FINETUNE(
   'CANCEL',  
-  '\<finetune\_job\_id\>'  
+  '<finetune_job_id>'  
 )
+```
 
 ### Cortex Agent
 
 ### Vector Functions
 
 With python, we can just use lists  
-**values \= \[(\[1.1, 2.2, 3\], \[1, 1, 1\]), (\[1, 2.2, 3\], \[4, 6, 8\])\]**  
-**for row in values:**  
-        **cur.execute(f"""**  
-            **INSERT INTO vectors(a, b)**  
-                **SELECT {row\[0\]}::VECTOR(FLOAT,3), {row\[1\]}::VECTOR(FLOAT,3)**  
-        **""")**
+```python
+values = [([1.1, 2.2, 3], [1, 1, 1]), ([1, 2.2, 3], [4, 6, 8])]  
+for row in values:
+  cur.execute(f""" 
+    INSERT INTO vectors(a, b) 
+      SELECT {row[0]}::VECTOR(FLOAT,3), {row[1]}::VECTOR(FLOAT,3)  
+""")
 
-***\# Compute the pairwise inner product between columns a and b***  
-**cur.execute("SELECT VECTOR\_INNER\_PRODUCT(a, b) FROM vectors")**  
-**print(cur.fetchall())**
+# Compute the pairwise inner product between columns a and b 
+cur.execute("SELECT VECTOR\_INNER\_PRODUCT(a, b) FROM vectors") 
+print(cur.fetchall())
+```
 
 #### VECTOR\_INNER\_PRODUCT
 
 Magnitude sensitive  
-VECTOR\_INNER\_PRODUCT**(** \<vector\>, \<vector\> )  
+```sql
+VECTOR_INNER_PRODUCT( <vector>, <vector> )
+```
+
 (can over-index on “popular” things)  
-**INSERT** **INTO** vectors **SELECT** **\[**1**,**2**.**2**,**3**\]::VECTOR(FLOAT,**3**),** **\[**4**,**6**,**8**\]::VECTOR(FLOAT,**3**);**
+```sql
+SELECT VECTOR_INNER_PRODUCT( [1.1,2.2,3]::VECTOR(FLOAT,3), [1,1,1]::VECTOR(FLOAT,3) );
+```
 
 \-- Compute the pairwise inner product between columns a and b  
-**SELECT** VECTOR\_INNER\_PRODUCT**(**a**,** b**)** **FROM** vectors**;**
+```sql
+SELECT VECTOR_INNER_PRODUCT( SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'Embed me plz')::VECTOR(FLOAT, 768),  SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'DO NOT EMBED')::VECTOR(FLOAT, 768));
+```
 
 #### VECTOR\_COSINE\_SIMILARITY
 
 Best when vector length doesn’t matter, just direction, but very good in high dimensional spaces  
-**SELECT** a**,** VECTOR\_COSINE\_SIMILARITY**(**a**,** **\[**1**,**2**,**3**\]::VECTOR(FLOAT,** 3**))** **AS** similarity  
-    **FROM** vectors  
-**ORDER** **BY** similarity **DESC**  
-**LIMIT** 1**;**
+```sql
+VECTOR_COSINE_SIMILARITY( <vector>, <vector> )
+```
+```sql
+SELECT a, VECTOR_COSINE_SIMILARITY(a, [1,2,3]::VECTOR(FLOAT, 3)) AS similarity
+  FROM vectors
+  ORDER BY similarity DESC
+  LIMIT 1;
+```
 
 #### VECTOR\_L1\_DISTANCE
 
@@ -441,9 +475,17 @@ Manhattan distance of 2 vectors (stair step)
 Not great if data is already normalized  
 Magnitude sensitive
 
+```sql
+VECTOR_L1_DISTANCE( <vector>, <vector> )
+```
+
 #### VECTOR\_L2\_DISTANCE
 
 #### Euclidean distance of 2 vectors (diagonal)
+
+```sql
+VECTOR_L2_DISTANCE( <vector>, <vector> )
+```
 
 Not great if data is already normalized  
 Magnitude sensitive
@@ -452,38 +494,54 @@ Magnitude sensitive
 
 #### COUNT\_TOKENS
 
-Returns number of tokens  
-SNOWFLAKE.CORTEX.COUNT\_TOKENS**(** \<model\_name\> , \<input\_text\> )
+Returns number of tokens   
+Doesn't support closed source 3rd party models or fine tuned models
+```sql
+SNOWFLAKE.CORTEX.COUNT_TOKENS( <model_name> , <input_text> )
+```
+```sql
+SELECT SNOWFLAKE.CORTEX.COUNT_TOKENS('llama3-8b', 'embed me plz');
+```
 
 #### TRY\_COMPLETE
 
 General purpose  
-Same a complete, but returns null instead of an error  
-SNOWFLAKE.CORTEX.TRY\_COMPLETE**(** \<model\>, \<prompt\_or\_history\> \[ , \<options\> \] )
+Same a complete, but returns `NULL` instead of an error  
+```sql
+SNOWFLAKE.CORTEX.TRY_COMPLETE( <model>, <prompt_or_history> [ , <options> ] )
+```
 
 #### SPLIT\_TEXT\_RECURSIVE\_CHARACTER
 
 Chunk strings for search workflows. Recursive until all chunks are smaller than “chunk\_size”  
-SNOWFLAKE.CORTEX.SPLIT\_TEXT\_RECURSIVE\_CHARACTER **(**  
-  '\<text\_to\_split\>',  
-  '\<format\>',  
-  \<chunk\_size\>,  
-  \[ \<overlap\> \],  
-  \[ \<separators\> \]  
+```sql
+SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER (
+  '<text_to_split>',
+  '<format>',
+  <chunk_size>,
+  [ <overlap> ],
+  [ <separators> ]
 )
+```
 
-### **SELECT** SNOWFLAKE.CORTEX.SPLIT\_TEXT\_RECURSIVE\_CHARACTER **(**'hello world are you here'**,**'none'**,**15**,**10**);**
+```sql
+SELECT SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER (
+   'hello world are you here',
+   'none',
+   15,
+   10
+);
+```
 
-### \['hello world are', 'world are you', 'are you here'\]
-
-### 
-
-Splits the text into chunks of 15 characters each, with an overlap of 10 characters between chunks.
+chunks of 15 chars, 10 overlap, format "none" (not markdown), no seperators defined
+```sql
+['hello world are', 'world are you', 'are you here']
+```
 
 Formats:
 
-- none: No format-specific separators. Only the separators in the separators field are used for splitting.  
-- markdown: Separates on headers, code blocks, and tables, in addition to any separators in the separators field.
+- `none`: No format-specific separators. Only the separators in the separators field are used for splitting.  
+- `markdown`: Separates on headers, code blocks, and tables, in addition to any separators in the separators field.
 
 Separators default: \[”\\n\\n”, “\\n”, “ “, “”\], meaning a paragraph break, a line break, a space, and between any two characters (the empty string).
 
@@ -533,31 +591,36 @@ Considerations For Semantic Models
 - Does incur additional storage \+ compute costs  
 - Best for higher cardinality (\>10 distinct values), otherwise can use built in search
 
-**CREATE** **OR** **REPLACE** **CORTEX SEARCH SERVICE** my\_logical\_dimension\_search\_service  
-  **ON** my\_dimension  
-  **WAREHOUSE** **\=** **xsmall**  
-  **TARGET\_LAG** **\=** '1 hour'  
-  **AS** **(**  
-      **SELECT** **DISTINCT** my\_dimension **FROM** my\_logical\_dimension\_landing\_table  
-  **);\`**  
-**Usage:**  
-**tables:**
+```sql
+-- Create the Cortex Search Service
+CREATE OR REPLACE CORTEX SEARCH SERVICE business_search_service
+    TEXT INDEXES name, address
+    VECTOR INDEXES description (model='snowflake-arctic-embed-m-v1.5')
+    WAREHOUSE = mywh
+    TARGET_LAG = '1 hour'
+    AS ( SELECT * FROM business_directory );
+```
 
-  **\-** **name:** my\_table
+Including Cortex Search In a Semantic Model under table -> dimensions -> search service:  
+```yaml
+tables:
 
-    **base\_table:**  
-      **database:** my\_database  
-      **schema:** my\_schema  
-      **table:** my\_table
+  - name: my_table
 
-    **dimensions:**  
-      **\-** **name:** my\_dimension  
-        **expr:** my\_column  
-        **cortex\_search\_service:**  
-          **service:** my\_logical\_dimension\_search\_service  
-          **literal\_column:** my\_column     *\# optional*  
-          **database:** my\_search\_database  *\# optional*  
-          **schema:** my\_search\_schema      *\# optional*
+    base_table:  
+      database: my_database  
+      schema: my_schema  
+      table: my_table
+
+    dimensions:  
+      - name: my_dimension  
+        expr: my_column  
+        cortex_search_service:  
+          service: my_logical_dimension_search_service  
+          literal_column: my_column     # optional 
+          database: my_search_database  # optional
+          schema: my_search_schema      # optional
+```
 
 #### Cortex Analyst Suggested Questions
 
@@ -574,124 +637,129 @@ Considerations For Semantic Models
   - Iterate Gradually  
 - module\_custom\_instructions key in the top level of your semantic model to define custom instructions for specific components in the SQL generation pipeline. Supports:  
   - question\_categorization: Define how Cortex Analyst should classify user questions (for example, by blocking certain topics or guiding user behavior).  
-  - sql\_generation: Specify how SQL should be generated (for example, data formatting and filtering).
+  - sql\_generation: Specify how SQL should be generated (for example, data formatting and filtering).  
 
-![][image1]
+```yaml
+# Name and description of the semantic model.
+name: <name>
+description: <string>
+comments: <string>
 
-*\# Name and description of the semantic model.*  
-**name:** \<name\>  
-**description:** \<string\>  
-**comments:** \<string\>
+# Logical table-level concepts
 
-*\# Logical table-level concepts*
+# A semantic model can contain one or more logical tables.
+tables:
 
-*\# A semantic model can contain one or more logical tables.*  
-**tables:**
+  # A logical table on top of a base table.
+  - name: <name>
+    description: <string>
 
-  *\# A logical table on top of a base table.*  
-  **\-** **name:** \<name\>  
-    **description:** \<string\>
 
-    *\# The fully qualified name of the base table.*  
-    **base\_table:**  
-      **database:** \<database\>  
-      **schema:** \<schema\>  
-      **table:** \<base table name\>
+    # The fully qualified name of the base table.
+    base_table:
+      database: <database>
+      schema: <schema>
+      table: <base table name>
 
-    *\# Dimension columns in the logical table.*  
-    **dimensions:**  
-      **\-** **name:** \<name\>  
-        **synonyms:** \<array of strings\>  
-        **description:** \<string\>
+    # Dimension columns in the logical table.
+    dimensions:
+      - name: <name>
+        synonyms: <array of strings>
+        description: <string>
 
-        **expr:** \<SQL expression\>  
-        **data\_type:** \<data type\>  
-        **unique:** \<boolean\>  
-        **cortex\_search\_service:**  
-          **service:** \<string\>  
-          **literal\_column:** \<string\>  
-          **database:** \<string\>  
-          **schema:** \<string\>  
-        **is\_enum:** \<boolean\>
+        expr: <SQL expression>
+        data_type: <data type>
+        unique: <boolean>
+        cortex_search_service:
+          service: <string>
+          literal_column: <string>
+          database: <string>
+          schema: <string>
+        is_enum: <boolean>
 
-    *\# Time dimension columns in the logical table.*  
-    **time\_dimensions:**  
-      **\-** **name:** \<name\>  
-        **synonyms:**  \<array of strings\>  
-        **description:** \<string\>
 
-        **expr:** \<SQL expression\>  
-        **data\_type:** \<data type\>  
-        **unique:** \<boolean\>
+    # Time dimension columns in the logical table.
+    time_dimensions:
+      - name: <name>
+        synonyms:  <array of strings>
+        description: <string>
 
-    *\# Fact columns in the logical table.*  
-    **facts:**  
-      **\-** **name:** \<name\>  
-        **synonyms:** \<array of strings\>  
-        **description:** \<string\>  
-        **access\_modifier:** \< public\_access | private\_access \>  *\# Supported only for semantic views.*  
-                                                             *\# Default is public\_access.*
+        expr: <SQL expression>
+        data_type: <data type>
+        unique: <boolean>
 
-        **expr:** \<SQL expression\>  
-        **data\_type:** \<data type\>
+    # Fact columns in the logical table.
+    facts:
+      - name: <name>
+        synonyms: <array of strings>
+        description: <string>
+        access_modifier: < public_access | private_access >  # Supported only for semantic views.
+                                                             # Default is public_access.
 
-    *\# Regular metrics scoped to the logical table.*  
-    **metrics:**  
-      **\-** **name:** \<name\>  
-        **synonyms:** \<array of strings\>  
-        **description:** \<string\>  
-        **access\_modifier:** \< public\_access | private\_access \>  *\# Supported only for semantic views.*  
-                                                             *\# Default is public\_access.*
+        expr: <SQL expression>
+        data_type: <data type>
 
-        **expr:** \<SQL expression\>
 
-    *\# Commonly used filters over the logical table.*  
-    **filters:**  
-      **\-** **name:** \<name\>  
-        **synonyms:** \<array of strings\>  
-        **description:** \<string\>
+    # Regular metrics scoped to the logical table.
+    metrics:
+      - name: <name>
+        synonyms: <array of strings>
+        description: <string>
+        access_modifier: < public_access | private_access >  # Supported only for semantic views.
+                                                             # Default is public_access.
 
-        **expr:** \<SQL expression\>
+        expr: <SQL expression>
 
-*\# Model-level concepts*
 
-*\# Relationships between logical tables*  
-**relationships:**  
-  **\-** **name:** \<string\>
+    # Commonly used filters over the logical table.
+    filters:
+      - name: <name>
+        synonyms: <array of strings>
+        description: <string>
 
-    **left\_table:** \<table\>  
-    **right\_table:** \<table\>  
-    **relationship\_columns:**  
-      **\-** **left\_column:** \<column\>  
-        **right\_column:** \<column\>  
-      **\-** **left\_column:** \<column\>  
-        **right\_column:** \<column\>  
-    *\# For semantic views, do not specify*  
-    *\# join\_type or relationship\_type.*  
-    **join\_type:** \<left\_outer | inner\>  
-    **relationship\_type:** \< one\_to\_one | many\_to\_one \>
+        expr: <SQL expression>
 
-*\# Derived metrics scoped to the semantic view.*  
-*\# Derived metrics are supported only for semantic views.*  
-**metrics:**  
-  **\-** **name:** \<name\>  
-    **synonyms:** \<array of strings\>  
-    **description:** \<string\>  
-    **access\_modifier:** \< public\_access | private\_access \>  *\# Default is public\_access*
+# Model-level concepts
 
-    **expr:** \<SQL expression\>
+# Relationships between logical tables
+relationships:
+  - name: <string>
 
-*\# Additional context concepts*
+    left_table: <table>
+    right_table: <table>
+    relationship_columns:
+      - left_column: <column>
+        right_column: <column>
+      - left_column: <column>
+        right_column: <column>
+    # For semantic views, do not specify
+    # join_type or relationship_type.
+    join_type: <left_outer | inner>
+    relationship_type: < one_to_one | many_to_one >
 
-*\#  Verified queries with example questions and queries that answer them*  
-**verified\_queries:**  
-  **\-** **name:**        *\# A descriptive name of the query.*
+# Derived metrics scoped to the semantic view.
+# Derived metrics are supported only for semantic views.
+metrics:
+  - name: <name>
+    synonyms: <array of strings>
+    description: <string>
+    access_modifier: < public_access | private_access >  # Default is public_access
 
-    **question:**    *\# The natural language question that this query answers.*  
-    **verified\_at:** *\# Optional: Time (in seconds since the UNIX epoch, January 1, 1970\) when the query was verified.*  
-    **verified\_by:** *\# Optional: Name of the person who verified the query.*  
-    **use\_as\_onboarding\_question:**  *\# Optional: Marks this question as an onboarding question for the end user.*  
-    **sql:**                         *\# The SQL query for answering the question*
+    expr: <SQL expression>
+
+
+# Additional context concepts
+
+#  Verified queries with example questions and queries that answer them
+verified_queries:
+  - name:        # A descriptive name of the query.
+
+    question:    # The natural language question that this query answers.
+    verified_at: # Optional: Time (in seconds since the UNIX epoch, January 1, 1970) when the query was verified.
+    verified_by: # Optional: Name of the person who verified the query.
+    use_as_onboarding_question:  # Optional: Marks this question as an onboarding question for the end user.
+    sql:                         # The SQL query for answering the question
+```
 
 Example semantic view yaml:  
 [https://docs.snowflake.com/en/\_downloads/6a9e323e0ad534fa8b561fcb0665bcbd/snow\_tpch.yaml](https://docs.snowflake.com/en/_downloads/6a9e323e0ad534fa8b561fcb0665bcbd/snow_tpch.yaml)
@@ -744,18 +812,18 @@ UI Docs (images): [https://docs.snowflake.com/en/developer-guide/snowflake-ml/mo
 
 ML models \-\> Model Registry  
 Custom LLMs run on SPCS
-
-- Logging The Model  
-  - **from** **snowflake.ml.model** **import** task**,** type\_hints  
-  - mv \= reg.log\_model**(**clf**,**  
-  -                    model\_name\="my\_model"**,**  
-  -                    version\_name\="v1"**,**  
-  -                    conda\_dependencies\=**\[**"scikit-learn"**\],**  
-  -                    comment\="My awesome ML model"**,**  
-  -                    metrics\=**{**"score"**:** 96**},**  
-  -                    sample\_input\_data\=train\_features**,**  
-  -                    task\=task.Task.TABULAR\_BINARY\_CLASSIFICATION**)**  
-- Calling The Model  
-  - remote\_prediction \= mv.run**(**test\_features**,** function\_name\="predict"**)**  
-  - remote\_prediction.show**()**   *\# assuming test\_features is Snowpark DataFrame*  
-  - 
+```python
+# Logging The Model  
+custom_mv = snowml_registry.log_model(
+    my_pycaret_model,
+    model_name="pycaret_juice",
+    # version_name="version_1", # Uncomment to choose your own version_name for the mpdel version
+    conda_dependencies=["pycaret==3.0.2", "scipy==1.11.4", "joblib==1.2.0"],
+    options={"relax_version": False},
+    signatures={"predict": predict_sign},
+    comment = 'PyCaret ClassificationExperiment using the CustomModel API'
+)
+#  Calling The Model  
+snowml_registry.show_models()
+custom_mv.run(snowpark_df).show()
+```

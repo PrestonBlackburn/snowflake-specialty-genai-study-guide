@@ -130,3 +130,23 @@ SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'Embed me plz
 
 -------------- TEXT_EMBED_1024 ----------------------
 SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_1024('nv-embed-qa-4', 'embed me plz');
+
+
+
+---------------  COUNT_TOKENS -------------------
+SELECT SNOWFLAKE.CORTEX.COUNT_TOKENS('snowflake-arctic-embed-m', 'embed me plz'); -- 7
+SELECT SNOWFLAKE.CORTEX.COUNT_TOKENS('llama3-8b', 'embed me plz'); -- 4
+
+--- Doesn't Support Closed Source Models, ex: --
+SELECT SNOWFLAKE.CORTEX.COUNT_TOKENS('openai-gpt-4.1', 'embed me plz');
+-- fails
+
+
+------------ SPLIT_TEXT_RECURSIVE_CHARACTER ------------------
+
+SELECT SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(
+    'plz no, dont split me up',
+    'none',
+    15, -- chunk size (char)
+    5   --overlap
+);
