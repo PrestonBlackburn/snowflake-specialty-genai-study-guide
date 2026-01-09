@@ -19,66 +19,82 @@ Standard llm usage
 General usage
 
 **Basic Usage**  
-SNOWFLAKE.CORTEX.COMPLETE**(**  
-    \<model\>, \<prompt\_or\_history\> \[ , \<options\> \] )
+```sql
+SNOWFLAKE.CORTEX.COMPLETE(
+    <model>, <prompt_or_history> [ , <options> ] )
+```
 
-**SELECT** SNOWFLAKE.CORTEX.COMPLETE**(**  
-    'openai-gpt-4.1'**,**  
-        CONCAT**(**'Critique this review in bullet points: \<review\>'**,** content**,** '\</review\>'**)**  
-**)** **FROM** reviews **LIMIT** 10**;**
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE(
+    'openai-gpt-4.1',
+        CONCAT('Critique this review in bullet points: <review>', content, '</review>')
+) FROM reviews LIMIT 10;
+```
 
 OR  
-**SELECT** SNOWFLAKE.CORTEX.COMPLETE**(**  
-    'claude-4-sonnet '**,**  
-    **\[**  
-        **{**  
-            'role'**:** 'user'**,**  
-            'content'**:** 'how does a snowflake get its unique pattern?'  
-        **}**  
-    **\],**  
-    **{**  
-        'temperature': 0**.**7**,**  
-        'max\_tokens': 10  
-    **}**  
-**);**
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE(
+    'claude-4-sonnet ',
+    [
+        {
+            'role': 'user',
+            'content': 'how does a snowflake get its unique pattern?'
+        }
+    ],
+    {
+        'temperature': 0.7,
+        'max_tokens': 10
+    }
+);
+```
+
 
 With standard OpenAI type output format  
-**{**  
-    **"choices":** **\[**  
-        **{**  
-            **"messages":** " The unique pattern on a snowflake is"  
-        **}**  
-    **\],**  
-    **"created":** 1708536426**,**  
-    **"model":** "deepseek-r1"**,**  
-    **"usage":** **{**  
-        **"completion\_tokens":** 10**,**  
-        **"prompt\_tokens":** 22**,**  
-        **"guardrail\_tokens":** 0**,**  
-        **"total\_tokens":** 32  
-    **}**  
-**}**
+```sql
+{
+    "choices": [
+        {
+            "messages": " The unique pattern on a snowflake is"
+        }
+    ],
+    "created": 1708536426,
+    "model": "deepseek-r1",
+    "usage": {
+        "completion_tokens": 10,
+        "prompt_tokens": 22,
+        "guardrail_tokens": 0,
+        "total_tokens": 32
+    }
+}
+```
 
 **Usage With File (Multi-modal)**  
 Beyond completion use cases \- Comparing images, Captioning images, Classifying images, Extracting entities from images
 
-SNOWFLAKE.CORTEX.COMPLETE**(**  
-    '\<model\>', '\<prompt\>', \<file\_object\>)  
-**FROM** \<table\>  
-Or  
-SNOWFLAKE.CORTEX.COMPLETE**(**  
-    '\<model\>', \<prompt\_object\> )  
-**FROM** \<table\>
+```sql
+SNOWFLAKE.CORTEX.COMPLETE(
+    '<model>', '<prompt>', <file_object>)
+FROM <table>
+```
+Or 
+```sql
+SNOWFLAKE.CORTEX.COMPLETE(
+    '<model>', <prompt_object> )
+FROM <table>
+```
 
-**SELECT** SNOWFLAKE.CORTEX.COMPLETE**(**'claude-3-5-sonnet'**,**  
-    'Which country will observe the largest inflation change in 2024 compared to 2023?'**,**  
-    TO\_FILE**(**'@myimages'**,** 'highest-inflation.png'**));**
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet',
+    'Which country will observe the largest inflation change in 2024 compared to 2023?',
+    TO_FILE('@myimages', 'highest-inflation.png'));
+```
 
-With Prompt Object instead of Prompt \+ File  
-SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet',  
-    PROMPT('Classify the input image {0} in no more than 2 words. Respond in JSON',  
-        TO\_FILE('@myimages', img\_path)) AS image\_classification  
-FROM image\_table;
+With Prompt Object instead of Prompt + File  
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet',
+    PROMPT('Classify the input image {0} in no more than 2 words. Respond in JSON', img_file)) AS image_classification
+FROM image_table;
+```
 
 Where “TO\_FILE” creates a file object from the stage path (optional for prompt object)
 
@@ -91,67 +107,130 @@ Response format is required, can be done in json or pydantic
 #### CLASSIFY\_TEXT
 
 Task specific  
-SNOWFLAKE.CORTEX.CLASSIFY\_TEXT**(** \<input\> , \<list\_of\_categories\>, \[ \<options\> \] )  
+```sql
+SNOWFLAKE.CORTEX.CLASSIFY_TEXT( <input> , <list_of_categories>, [ <options> ] )
+```
 Can provide examples in \<options\>, but limit of 20  
 Basic Example  
-**SELECT** SNOWFLAKE.CORTEX.CLASSIFY\_TEXT**(**'One day I will see the world'**,** **\[**'travel'**,** 'cooking'**\]);**  
+```sql
+SELECT SNOWFLAKE.CORTEX.CLASSIFY_TEXT('One day I will see the world', ['travel', 'cooking']);
+```
 Output:  
+```json
 {  
   "label": "travel"  
 }  
+```
+
 With description  
-**SELECT** SNOWFLAKE.CORTEX.CLASSIFY\_TEXT**(**  
-  'When I am not at work, I love creating recipes using every day ingredients'**,**  
-  **\[**'travel'**,** 'cooking'**,** 'fitness'**\],**  
-  **{**  
-    'task\_description'**:** 'Return a classification of the Hobby identified in the text'  
-  **}**  
-**);**  
-{  
-  "label": "cooking"  
-}  
+```sql
+SELECT SNOWFLAKE.CORTEX.CLASSIFY_TEXT(
+  'I love running every morning before the world wakes up',
+  [{
+    'label': 'travel',
+    'description': 'Hobbies related to going from one place to another',
+    'examples': ['I like flying to Europe']
+  },{
+    'label': 'cooking',
+    'examples': ['I like learning about new ingredients', 'You must bring your soul to the recipe' , 'Baking is my therapy']
+    },{
+    'label': 'fitness',
+    'description': 'Hobbies related to being active and healthy'
+    }],
+  {'task_description': 'Return a classification of the Hobby identified in the text'})
+```
+
+```json
+{
+  "label": "fitness"
+}
+```
 Multi-label Example:  
-(todo)
+```sql
+SELECT AI_CLASSIFY(
+  'One day I will see the world and learn to cook my favorite dishes',
+  ['travel', 'cooking', 'reading', 'driving'],
+  {'output_mode': 'multi'}
+);
+```
 
 #### EXTRACT\_ANSWER
 
 Task specific  
-Q+A From “document” (just text or json)  
-SNOWFLAKE.CORTEX.EXTRACT\_ANSWER**(**  
-    \<source\_document\>, \<question\>)  
-**SELECT** SNOWFLAKE.CORTEX.EXTRACT\_ANSWER**(**review\_content**,**  
-    'What dishes does this review mention?'**)**  
-**FROM** reviews **LIMIT** 10**;**
-
+Q+A From “document” (just text or json)   
+Syntax:  
+```sql
+SNOWFLAKE.CORTEX.EXTRACT_ANSWER(
+    <source_document>, <question>)
+```
+Usage  
+```sql
+SELECT SNOWFLAKE.CORTEX.EXTRACT_ANSWER(review_content,
+    'What dishes does this review mention?')
+FROM reviews LIMIT 10;
+```
 #### PARSE\_DOCUMENT
 
 Task specific  
 OCR Necessary if text only  
 LAYOUT needed if tables data is needed  
-SNOWFLAKE.CORTEX.PARSE\_DOCUMENT**(** '@\<stage\>', '\<path\>', \[ \<options\> \] )  
-Modes: OCR (text only) and LAYOUT (text \+ layout, ex: tables)  
-**SELECT** TO\_VARCHAR**(**  
-    SNOWFLAKE.CORTEX.PARSE\_DOCUMENT**(**  
-        '@PARSE\_DOCUMENT.DEMO.documents'**,**  
-        'document\_1.pdf'**,**  
-        **{**'mode'**:** 'OCR'**})**  
-    **)** **AS** OCR**;**
+```sql
+SNOWFLAKE.CORTEX.PARSE_DOCUMENT( '@<stage>', '<path>', [ <options> ] )
+```
 
+Modes: OCR (text only) and LAYOUT (text \+ layout, ex: tables)  
+```sql
+SELECT TO_VARCHAR(
+    SNOWFLAKE.CORTEX.PARSE_DOCUMENT(
+        '@PARSE_DOCUMENT.DEMO.documents',
+        'document_1.pdf',
+        {'mode': 'OCR'})
+    ) AS OCR;
+```
+```json
 {  
     "content": "content of the document"  
 }
+```
+
+For processing Tables:  
+```sql
+SELECT
+  TO_VARCHAR (
+    SNOWFLAKE.CORTEX.PARSE_DOCUMENT (
+        '@PARSE_DOCUMENT.DEMO.documents',
+        'document_1.pdf',
+        {'mode': 'LAYOUT'} ) ) AS LAYOUT;
+```
+Examples:
+```json
+{
+  "content": "# This is PARSE DOCUMENT example
+     Example table:
+     |Header|Second header|Third Header|
+     |:---:|:---:|:---:|
+     |First row header|Data in first row|Data in first row|
+     |Second row header|Data in second row|Data in second row|
+
+     Some more text."
+ }
+```
 
 Also an output option:  
 "errorInformation": Contains error information if document can’t be parsed  
 And metadata for page count if splitting on pages  
+```sql
 **SELECT**  
-  TO\_VARCHAR **(**  
-    SNOWFLAKE.CORTEX.PARSE\_DOCUMENT **(**  
-        '@PARSE\_DOCUMENT.DEMO.documents'**,**  
-        'document\_1.pdf'**,**  
-        **{**'mode'**:** 'OCR'**,** 'page\_split': TRUE**}** **)** **)** **AS** MULTIPAGE**;**  
+SELECT TO_VARCHAR(
+    SNOWFLAKE.CORTEX.PARSE_DOCUMENT(
+        '@PARSE_DOCUMENT.DEMO.documents',
+        'document_1.pdf',
+        {'mode': 'OCR'})
+    ) AS OCR;
+```
+```json
 {  
-  "pages": \[  
+  "pages": [  
     {  
       "content": "content of the first page",  
       "index": 0  
@@ -164,51 +243,79 @@ And metadata for page count if splitting on pages
       "content": "content of the third page",  
       "index": 2  
     }  
-  \],  
+  ],  
   "metadata": {  
     "pageCount": 3  
   }  
 }
+```
 
 #### SENTIMENT
 
 Task specific  
 Overall sentiment score \-1 to 1  
-SNOWFLAKE.CORTEX.SENTIMENT**(**\<text\>)
+```sql
+SNOWFLAKE.CORTEX.SENTIMENT(<text>)
+```
 
-**SELECT** SNOWFLAKE.CORTEX.SENTIMENT**(**'A tourist\\'s delight**,** **in** **low** urban light**,**  
-  Recommended gem**,** a pizza night sight**.** Swift arrival**,** a pleasure so **right,**  
-  Yet**,** pockets felt lighter**,** a slight pricey bite**.** **💰🍕🚀');**  
+```sql
+SELECT SNOWFLAKE.CORTEX.SENTIMENT('A tourist\'s delight, in low urban light,
+  Recommended gem, a pizza night sight. Swift arrival, a pleasure so right,
+  Yet, pockets felt lighter, a slight pricey bite. 💰🍕🚀');
+```
+```sql
 0.5424458
+```
 
 #### SUMARIZE
 
 Task specific  
 Summarize provided text
 
-SNOWFLAKE.CORTEX.SUMMARIZE**(**\<text\>)  
-**SELECT** SNOWFLAKE.CORTEX.SUMMARIZE**(**review\_content**)** **FROM** reviews **LIMIT** 10**;**
+```sql
+SNOWFLAKE.CORTEX.SUMMARIZE(<text>)
+```
+
+```sql
+SELECT SNOWFLAKE.CORTEX.SUMMARIZE(review_content) FROM reviews LIMIT 10;
+```
+
 
 #### TRANSLATE
 
 Task specific  
 Supported language codes: [https://docs.snowflake.com/en/sql-reference/functions/translate-snowflake-cortex](https://docs.snowflake.com/en/sql-reference/functions/translate-snowflake-cortex)  
-SNOWFLAKE.CORTEX.TRANSLATE**(**  
-    \<text\>, \<source\_language\>, \<target\_language\>)  
-**SELECT** SNOWFLAKE.CORTEX.TRANSLATE**(**review\_content**,** 'en'**,** 'de'**)** **FROM** reviews **LIMIT** 10**;**
+```sql
+SNOWFLAKE.CORTEX.TRANSLATE(
+    <text>, <source_language>, <target_language>)
+```
+```sql
+SELECT SNOWFLAKE.CORTEX.TRANSLATE(review_content, 'en', 'de') FROM reviews LIMIT 10;
+```
+
 
 #### EMBED\_TEXT\_768
 
 Task specific  
-SNOWFLAKE.CORTEX.EMBED\_TEXT\_768**(** \<model\>, \<text\> )  
-**SELECT** SNOWFLAKE.CORTEX.EMBED\_TEXT\_768**(**'snowflake-arctic-embed-m-v1.5'**,** 'hello world'**);**  
+
+```sql
+SNOWFLAKE.CORTEX.EMBED_TEXT_768( <model>, <text> )
+```
+```sql
+SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'Embed me plz');
+```
 Models: snowflake-arctic-embed-m-v1.5, snowflake-arctic-embed-m, e5-base-v2
 
 #### EMBED\_TEXT\_1024
 
 Task specific  
-SNOWFLAKE.CORTEX.EMBED\_TEXT\_1024**(** \<model\>, \<text\> )  
-**SELECT** SNOWFLAKE.CORTEX.EMBED\_TEXT\_1024**(**'snowflake-arctic-embed-l-v2.0'**,** 'hello world'**);**  
+
+```sql
+SNOWFLAKE.CORTEX.EMBED_TEXT_1024( <model>, <text> )
+```
+```sql
+SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_1024('nv-embed-qa-4', 'embed me plz'); 
+```
 Models: snowflake-arctic-embed-l-v2.0, snowflake-arctic-embed-l-v2.0-8k, nv-embed-qa-4, multilingual-e5-large, voyage-multilingual-2
 
 ### Cortex Search
