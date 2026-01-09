@@ -320,12 +320,15 @@ Models: snowflake-arctic-embed-l-v2.0, snowflake-arctic-embed-l-v2.0-8k, nv-embe
 
 ### Cortex Search
 
-### Cortex Analyst
+Either use `ATTRIBUTES` for automatic vectorization or `TEXT INDEXES + VECTOR INDEXES` for custum vectorization
 
 **Model Selection:** You cannot choose a model directly. Instead, Cortex Analyst assigns each request to a model, or to a combination of models, taking into account the following factors:
 - The models available in your Snowflake region.
 - The account’s cross-region inference configuration.
 - Any model-level RBAC restrictions you have established.
+
+### Cortex Analyst
+
 
 ### Cortex Fine Tuning
 
