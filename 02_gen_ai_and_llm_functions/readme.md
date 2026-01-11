@@ -773,6 +773,9 @@ Example semantic view yaml:
 
 Recommended using a warehouse size no larger than MEDIUM when calling Snowflake Cortex AI Functions
 
+For low latency UI cases - Use REST API  
+For batch processes use SQL cortex functions  
+
 ## Build Chat Interface to Interact With Data
 
 Cortex analyst use case vs Custom API 
