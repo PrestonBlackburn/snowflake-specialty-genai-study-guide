@@ -47,7 +47,21 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
     }
 );
 ```
-
+With Guardrails:  
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE( 
+    'mistral-large2',  
+    [
+        { 
+            'role': 'user',  
+            'content': <'Prompt that generates an unsafe response'>  
+        }
+    ], 
+    {  
+        'guardrails': true  
+    }  
+);
+```
 
 With standard OpenAI type output format  
 ```sql
@@ -66,6 +80,20 @@ With standard OpenAI type output format
         "total_tokens": 32
     }
 }
+```
+
+`AI_COMPLETE` is also similar:
+
+```sql
+SELECT AI_COMPLETE(
+    model => 'deepseek-r1',
+    prompt => 'how does a snowflake get its unique pattern?',
+    model_parameters => {
+        'temperature': 0.7,
+        'max_tokens': 10
+    },
+    show_details => true
+);
 ```
 
 **Usage With File (Multi-modal)**  
@@ -266,7 +294,15 @@ SELECT SNOWFLAKE.CORTEX.SENTIMENT('A tourist\'s delight, in low urban light,
 ```sql
 0.5424458
 ```
+- Positive: 0.5 to 1.0  
+- Neutral/Unknown: -0.5 to 0.5  
+- Negative: -1.0 to -0.5  
+- ex: 0 indicates no clear sentiment  
 
+Also a `ENTITY_SENTIMENT` function where you can pass sentiment categories  
+The newer `AI_SENTIMENT` also can be passed optional list of sentiment categories  
+- These other functions privide string responses `positive`, `negative`, `unknown` instead of a `FLOAT` range 
+- Always includes "overall" sentiment category
 #### SUMARIZE
 
 Task specific  

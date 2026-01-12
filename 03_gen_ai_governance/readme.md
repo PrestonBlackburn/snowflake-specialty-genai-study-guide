@@ -97,18 +97,24 @@ Models that can be accessed, ex:
 
 As part of COMPLETE and TRY_COMPLETE statements - Pass as arg  
 Doesn’t work with fine tuned models / purposed built  
-**SELECT** SNOWFLAKE.CORTEX.COMPLETE**(**  
-    'mistral-large2'**,**  
-    **\[**  
-        **{**  
-            'role'**:** 'user'**,**  
-            'content'**:** **\<**'Prompt that generates an unsafe response'**\>**  
-        **}**  
-    **\],**  
-    **{**  
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE( 
+    'mistral-large2',  
+    [
+        { 
+            'role': 'user',  
+            'content': <'Prompt that generates an unsafe response'>  
+        }
+    ], 
+    {  
         'guardrails': true  
-    **}**  
-**);**
+    }  
+);
+```
+- Charges based on token usage for gaurdrails (input tokens)
+- Guardrails based on llama guard model
+- Guardrails options: true/false/True/False/1/0
+- Can view usage in usage history table
 
 ### Methods To Reduce Model Hallucinations \+ Bias
 
@@ -263,6 +269,10 @@ Name: fully qualified stage path, or semantic view name
 #### CORTEX_ANALYST_USAGE_HISTORY
 
 Aggregated 1 hr, analyst credits used, metadata
+- only successfull (HTTP 200) requests are counted
+- just for text genernation
+- Additional sql execution costs are not included here
+- model selection may depend on RBAC and best available models
 
 #### CORTEX_FINE_TUNING_USAGE_HISTORY
 
@@ -325,10 +335,13 @@ Storage of events/logs
 [https://www.snowflake.com/en/developers/guides/getting-started-with-ai-observability/](https://www.snowflake.com/en/developers/guides/getting-started-with-ai-observability/)  
 Tracing, Evals, Monitoring
 
-Key Components:
+TruLens Outputs:  
+- Context Relevance - context retrieved is relevant to query   
+- Groundedness - is response “grounded” by retrieved context   
+- Answer Relevance - Is it relevant to query   
+  - *not necessarily *Correctness*    
+- Retrieved Contexts (For RAG)  
 
-- Context Relevance - context retrieved is relevant to query  
-- Groundedness - is response “grounded” by retrieved context  
-- Answer Relevance - Is it relevant to query  
-- Correctness - Is the answer correct  
-- Coherence - Answer quality
+Also relevant -  
+- Coherence
+
