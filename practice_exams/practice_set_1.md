@@ -144,11 +144,40 @@
     D. COMPLETE
 
 24. What is the maximum number of documents that can be processed in a single Document AI query?  
-A. 1000
-B. 500
-C. 1,00
-D. 5,000
+    A. 1000  
+    B. 500  
+    C. 1,00  
+    D. 5,000  
 
+25. Which function recursively chunks text until all chunks are below a target size?  
+    A. CHUNK_TEXT  
+    B. SPLIT_TEXT  
+    C. SPLIT_TEXT_RECURSIVE_CHARACTER  
+    D. TOKENIZE_TEXT  
+
+26. Where must model objects be created to enable fine-grained RBAC model control?  
+    A. SNOWFLAKE.CORTEX  
+    B. SNOWFLAKE.MODELS   
+    C. SNOWFLAKE.SECURITY  
+    D. User-defined schema  
+
+27. Which issue can cause access to fail even when RBAC and allowlist are correct?  
+    A. Warehouse too small   
+    B. Model unavailable in region   
+    C. Missing ACCOUNTADMIN role   
+    D. Using TRY_COMPLETE  
+
+28. Which view provides query-level Cortex function usage?  
+    A. CORTEX_FUNCTIONS_USAGE_HISTORY  
+    B. CORTEX_FUNCTIONS_QUERY_USAGE_HISTORY  
+    C. METERING_DAILY_HISTORY  
+    D. CORTEX_AISQL_USAGE_HISTORY  
+
+29. Which view contains input/output token-level details?  
+    A. CORTEX_FUNCTIONS_USAGE_HISTORY  
+    B. CORTEX_FUNCTIONS_QUERY_USAGE_HISTORY  
+    C. CORTEX_AISQL_USAGE_HISTORY  
+    D. METERING_DAILY_HISTORY  
 
 # Answer Key
 
@@ -179,6 +208,10 @@ D. 5,000
 22. B
 23. C
 24. A
-
+25. C
+26. B
+27. A
+28. B
+29. C
 
 </details>

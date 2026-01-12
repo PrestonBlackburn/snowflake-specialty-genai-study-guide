@@ -16,7 +16,7 @@ Steps for Fine Grained Control:
    1. **Optional: SHOW MODELS IN SNOWFLAKE.MODELS;**  
    2. **View application roles - SHOW APPLICATION ROLES IN APPLICATION SNOWFLAKE;**  
 4. Grant Specific Models to user role: **GRANT** **APPLICATION ROLE** **SNOWFLAKE.**"CORTEX-MODEL-ROLE-LLAMA3.1-70B" **TO** **ROLE** MY_ROLE**;**  
-   1. Grant all models to a specific role: **GRANT** **APPLICATION ROLE** **SNOWFLAKE.**"CORTEX-MODEL-ROLE-ALL" **TO** **ROLE** MY_ROLE**;**
+   1. Grant all models to a specific role: `GRANT APPLICATION ROLE SNOWFLAKE."CORTEX-MODEL-ROLE-ALL" TO ROLE MY_ROLE;`
 
 Auth Flow:
 
@@ -240,7 +240,6 @@ Details for refresh operations, index duration, preprocessing stats, etc..
 
 Hourly serving credits per service
 
-#### CORTEX_SEARCH_SERVING_USAGE_HISTORY
 
 #### CORTEX_DOCUMENT_PROCESSING_USAGE_HISTORY view
 
