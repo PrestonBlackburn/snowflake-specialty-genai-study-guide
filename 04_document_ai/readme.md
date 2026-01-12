@@ -2,17 +2,27 @@
 
 ## Setup Document AI
 
-(Deprecated for AI\_EXTRACT)  
-**GRANT** **DATABASE ROLE** **SNOWFLAKE.**DOCUMENT\_INTELLIGENCE\_CREATOR **TO** **ROLE** doc\_ai\_role**;**  
-**GRANT CREATE SNOWFLAKE.ML.DOCUMENT\_INTELLIGENCE ON SCHEMA doc\_ai\_db.doc\_ai\_schema TO ROLE doc\_ai\_role;**  
-**GRANT CREATE MODEL ON SCHEMA doc\_ai\_db.doc\_ai\_schema TO ROLE doc\_ai\_role;**  
-**GRANT CREATE STREAM, CREATE TABLE, CREATE TASK, CREATE VIEW ON SCHEMA doc\_ai\_db.doc\_ai\_schema TO ROLE doc\_ai\_role;**  
-**GRANT EXECUTE TASK ON ACCOUNT TO ROLE doc\_ai\_role;**
+(Deprecated for AI_EXTRACT)  
+```sql
+GRANT DATABASE ROLE SNOWFLAKE.DOCUMENT_INTELLIGENCE_CREATOR TO ROLE doc_ai_role;
+```
+```sql
+GRANT CREATE SNOWFLAKE.ML.DOCUMENT_INTELLIGENCE ON SCHEMA doc_ai_db.doc_ai_schema TO ROLE doc_ai_role;
+```
+```sql
+GRANT CREATE MODEL ON SCHEMA doc_ai_db.doc_ai_schema TO ROLE doc_ai_role;
+```
+```sql
+GRANT CREATE STREAM, CREATE TABLE, CREATE TASK, CREATE VIEW ON SCHEMA doc_ai_db.doc_ai_schema TO ROLE doc_ai_role;
+```
+```sql 
+GRANT EXECUTE TASK ON ACCOUNT TO ROLE doc_ai_role;
+```
 
-Privileges:
+Privileges:  
 
-- DOCUMENT\_INTELLIGENCE\_CREATOR database role  
-- Create [SNOWFLAKE.ML](http://SNOWFLAKE.ML).DOCUMENT\_INTELLIGENCE on schema  
+- DOCUMENT_INTELLIGENCE_CREATOR database role  
+- Create [SNOWFLAKE.ML](http://SNOWFLAKE.ML).DOCUMENT_INTELLIGENCE on schema  
 - CREATE MODEL on schema  
 - CREATE STREAM, TABLE, TASK, VIEW \+ EXECUTE TASK
 
@@ -29,7 +39,7 @@ Workflow:
 2. Optional: Fine-tune the model.  
    You can fine-tune the model in the Document AI UI if the results provided by the Snowflake Arctic-TILT model are not satisfactory.  
 3. Run inference.  
-   You use the [\<model\_build\_name\>\!PREDICT](https://docs.snowflake.com/en/sql-reference/classes/document-intelligence/methods/predict) method and the model build created in the Document AI UI to extract information from documents.
+   You use the [\<model_build_name\>\!PREDICT](https://docs.snowflake.com/en/sql-reference/classes/document-intelligence/methods/predict) method and the model build created in the Document AI UI to extract information from documents.
 
 ![][image2]
 
@@ -41,10 +51,10 @@ Privileges To **Prepare** Document AI Model build
 
 - USAGE: Database, Warehouse  
 - OPERATE: Warehouse  
-- CREATE [SNOWFLAKE.ML](http://SNOWFLAKE.ML).DOCUMENT\_INTELLIGENCE on schema  
+- CREATE [SNOWFLAKE.ML](http://SNOWFLAKE.ML).DOCUMENT_INTELLIGENCE on schema  
 - CREATE MODEL on schema  
 - USAGE on schema  
-- DOCUMENT\_INTELLIGENCE\_CREATOR database role
+- DOCUMENT_INTELLIGENCE_CREATOR database role
 
 Privileges To Create Processing Pipelines
 
@@ -83,15 +93,15 @@ Ex: What is the date of this agreement?
 
 ### Conditions
 
-### \<model\_build\_name\>\!PREDICT query
+### \<model_build_name\>\!PREDICT query
 
-\<model\_build\_name\>\!PREDICT**(**\<presigned\_url\>,  
-                           \[ \<model\_build\_version\> \]  
+\<model_build_name\>\!PREDICT**(**\<presigned_url\>,  
+                           \[ \<model_build_version\> \]  
                           )  
-Get presigned url from GET\_PRESIGNED\_URL function  
+Get presigned url from GET_PRESIGNED_URL function  
 **SELECT** inspections**\!**PREDICT**(**  
-  GET\_PRESIGNED\_URL**(@**pdf\_inspections\_stage**,** **RELATIVE\_PATH),** 1**)**  
-  **FROM** **DIRECTORY(@**pdf\_inspections\_stage**);**
+  GET_PRESIGNED_URL**(@**pdf_inspections_stage**,** **RELATIVE_PATH),** 1**)**  
+  **FROM** **DIRECTORY(@**pdf_inspections_stage**);**
 
 ### Automation of Data Pipeline
 
@@ -101,20 +111,20 @@ To create a processing pipeline:
 * Upload new documents to an internal stage.  
 * View the extracted information
 
-**CREATE** **OR** **REPLACE** **TASK** load\_new\_file\_data  
-  **WAREHOUSE** **\=** **\<**your\_warehouse**\>**  
+**CREATE** **OR** **REPLACE** **TASK** load_new_file_data  
+  **WAREHOUSE** **\=** **\<**your_warehouse**\>**  
   **SCHEDULE** **\=** '1 minutes'  
-  **COMMENT** **\=** 'Process new files in the stage and insert data into the pdf\_reviews table.'  
-**WHEN** SYSTEM$STREAM\_HAS\_DATA**(**'my\_pdf\_stream'**)**  
+  **COMMENT** **\=** 'Process new files in the stage and insert data into the pdf_reviews table.'  
+**WHEN** SYSTEM$STREAM_HAS_DATA**(**'my_pdf_stream'**)**  
 **AS**  
-**INSERT** **INTO** pdf\_reviews **(**  
+**INSERT** **INTO** pdf_reviews **(**  
   **SELECT**  
-    **RELATIVE\_PATH** **AS** file\_name**,**  
-    size **AS** file\_size**,**  
-    last\_modified**,**  
-    file\_url **AS** snowflake\_file\_url**,**  
-    inspection\_reviews**\!**PREDICT**(**GET\_PRESIGNED\_URL**(**'@my\_pdf\_stage'**,** **RELATIVE\_PATH),** 1**)** **AS** json\_content  
-  **FROM** my\_pdf\_stream  
+    **RELATIVE_PATH** **AS** file_name**,**  
+    size **AS** file_size**,**  
+    last_modified**,**  
+    file_url **AS** snowflake_file_url**,**  
+    inspection_reviews**\!**PREDICT**(**GET_PRESIGNED_URL**(**'@my_pdf_stage'**,** **RELATIVE_PATH),** 1**)** **AS** json_content  
+  **FROM** my_pdf_stream  
   **WHERE** **METADATA$**ACTION **\=** 'INSERT'  
 **);**
 
@@ -122,19 +132,19 @@ To create a processing pipeline:
 
 ### Extracting Query Troubleshooting
 
-Documents must be in internal/external stage \+ **Snowflake\_SSE** **encryption**  
+Documents must be in internal/external stage \+ **Snowflake_SSE** **encryption**  
 Error Examples:  
 "File extension does not match actual mime type. Mime-Type: application/octet-stream"  
-"cannot identify image file \<\_io.BytesIO object at 0x7f8a800ba020\>"  
-Fix, make sure SNOWFLAKE\_SSE is specified on stage:  
-**CREATE** **STAGE** doc\_ai\_stage  
+"cannot identify image file \<_io.BytesIO object at 0x7f8a800ba020\>"  
+Fix, make sure SNOWFLAKE_SSE is specified on stage:  
+**CREATE** **STAGE** doc_ai_stage  
   **DIRECTORY** \= (**ENABLE** \= **TRUE**)  
-  **ENCRYPTION** \= (**TYPE** \= 'SNOWFLAKE\_SSE');
+  **ENCRYPTION** \= (**TYPE** \= 'SNOWFLAKE_SSE');
 
-### GET\_PRESIGNED\_URL function
+### GET_PRESIGNED_URL function
 
 May need to extend presigned url timeout for larger workloads (60 min default expiration)  
-GET\_PRESIGNED\_URL**(** @\<stage\_name\> , '\<relative\_file\_path\>' , \[ \<expiration\_time\> \] )  
+GET_PRESIGNED_URL**(** @\<stage_name\> , '\<relative_file_path\>' , \[ \<expiration_time\> \] )  
 Default timeout of 60 minutes
 
 ### Other Troubleshooting
@@ -144,13 +154,13 @@ Specific Requirements:
 
 - Outlined in error messages, ex: file exceeds maximum size
 
-Document AI Model Not Published \- Request failed for external function DOCUMENT\_EXTRACT\_FEATURES$V1 with remote service error: 422
+Document AI Model Not Published \- Request failed for external function DOCUMENT_EXTRACT_FEATURES$V1 with remote service error: 422
 
 - Publish the model through the Snowsight UI
 
 Required Privileges, Create A Document AI Model Build:
 
-- Grant the CREATE SNOWFLAKE.ML.DOCUMENT\_INTELLIGENCE privilege to your role.  
+- Grant the CREATE SNOWFLAKE.ML.DOCUMENT_INTELLIGENCE privilege to your role.  
 - Grant the CREATE MODEL privilege on the schema that uses the model.  
 - Use a unique model build name within the database and schema.  
 - 
@@ -161,7 +171,7 @@ Required Privileges, Create A Document AI Model Build:
 
 Cost Sources:
 
-- AI Services Compute \- Extract info with the \<model\_build\_name\>\!PREDICT method (tokens cost)  
+- AI Services Compute \- Extract info with the \<model_build_name\>\!PREDICT method (tokens cost)  
   - Based on \- number of pages, number of documents, page density, number of data values  
 - Virtual Warehouse Compute \- Running queries, retrieving data  
 - Storage \- uploaded documents to Document AI UI (stored in account). Stages for documents
@@ -169,8 +179,8 @@ Cost Sources:
 Warehouse Sizing: Snowflake recommends using an X-Small, Small, or Medium warehouse. Scaling up the warehouse does not increase the speed of query processing, but might result in unnecessary costs.
 
 Monitor Costs:  
-**SELECT** \* **FROM** **SNOWFLAKE**.ORGANIZATION\_USAGE.METERING\_DAILY\_HISTORY  
-  **WHERE** service\_type **ILIKE** '%ai\_services%';
+**SELECT** \* **FROM** **SNOWFLAKE**.ORGANIZATION_USAGE.METERING_DAILY_HISTORY  
+  **WHERE** service_type **ILIKE** '%ai_services%';
 
 # Question Bank
 

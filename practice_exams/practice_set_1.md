@@ -58,17 +58,17 @@
     C. EXTRACT_ANSWER  
     D. AI_EXTRACT  
  
-10. Which requirement must be met for fine-tuning a Cortex model?
-    A. USAGE privilege on warehouse only
-    B. CREATE MODEL privilege on schema
-    C. ACCOUNTADMIN role
-    D. OWNERSHIP on database
+10. Which requirement must be met for fine-tuning a Cortex model?  
+    A. USAGE privilege on warehouse only  
+    B. CREATE MODEL privilege on schema  
+    C. ACCOUNTADMIN role  
+    D. OWNERSHIP on database  
 
-11. Which column names are required in the training query for fine-tuning?
-    A. input, output
-    B. text, label
-    C. prompt, completion
-    D. question, answer
+11. Which column names are required in the training query for fine-tuning?  
+    A. input, output  
+    B. text, label  
+    C. prompt, completion  
+    D. question, answer  
 
 12. Which statement about fine-tuned models is true?   
     A. They support cross-region inference  
@@ -82,17 +82,17 @@
     C. VECTOR_L2_DISTANCE  
     D. VECTOR_COSINE_SIMILARITY  
 
-14. Which embedding model produces 1024-dimension vectors?  
-    A. snowflake-arctic-embed-m-v1.5
-    B. e5-base-v2
-    C. snowflake-arctic-embed-l-v2.0
-    D. BERT
-
-15. Which use case is best suited for Cortex Analyst instead of a custom API?  
-    A. Image captioning
-    B. Free-form creative writing
-    C. Natural language questions on structured data
-    D. Custom fine-tuned inference
+14. Which embedding model produces 1024-dimension vectors?   
+    A. snowflake-arctic-embed-m-v1.5   
+    B. e5-base-v2   
+    C. snowflake-arctic-embed-l-v2.0   
+    D. BERT   
+ 
+15. Which use case is best suited for Cortex Analyst instead of a custom API?   
+    A. Image captioning  
+    B. Free-form creative writing  
+    C. Natural language questions on structured data  
+    D. Custom fine-tuned inference  
 
 16. Which parameter restricts which LLMs are available across an entire Snowflake account?   
     A. ENABLE_CORTEX_ANALYST  
@@ -118,12 +118,12 @@
     C. METERING_DAILY_HISTORY  
     D. QUERY_HISTORY  
 
-20. Which guardrail behavior is correct?  
-    A. Guardrails work with fine-tuned models
-    B. Guardrails require Cortex Analyst
-    C. Guardrails can be enabled via COMPLETE options
-    D. Guardrails only apply in REST APIs
-*double check if fine-tuned models can have guardrails* 
+20. Which guardrail behavior is correct?   
+    A. Guardrails work with fine-tuned models  
+    B. Guardrails require Cortex Analyst  
+    C. Guardrails can be enabled via COMPLETE options  
+    D. Guardrails only apply in REST APIs  
+*double check if fine-tuned models can have guardrails*   
 
 21. Which AI Observability metric measures whether responses are supported by retrieved context?   
     A. Accuracy  
@@ -137,11 +137,11 @@
     C. CORTEX_USER database role  
     D. OWNERSHIP on warehouse  
 
-23. Which function is used to extract structured values from documents using a published Document AI model?  
-    A. AI_EXTRACT
-    B. PARSE_DOCUMENT
-    C. <model_build_name>!PREDICT
-    D. COMPLETE
+23. Which function is used to extract structured values from documents using a published Document AI model?    
+    A. AI_EXTRACT  
+    B. PARSE_DOCUMENT  
+    C. <model_build_name>!PREDICT  
+    D. COMPLETE  
 
 24. What is the maximum number of documents that can be processed in a single Document AI query?  
     A. 1000  
@@ -213,5 +213,6 @@
 27. A
 28. B
 29. C
+
 
 </details>
