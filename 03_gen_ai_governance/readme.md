@@ -9,28 +9,27 @@ Restricting Access To Specific Models
 (Iookup)  
 Steps for Fine Grained Control:
 
-1. To use RBAC exclusively, set CORTEX_MODELS_ALLOWLIST to 'None'.  
-2. create model objects in the SNOWFLAKE.MODELS schema that *represent* the Cortex models
-
-3. Refresh available models:  **CALL** **SNOWFLAKE.MODELS.**CORTEX_BASE_MODELS_REFRESH**();**  
-   1. **Optional: SHOW MODELS IN SNOWFLAKE.MODELS;**  
-   2. **View application roles - SHOW APPLICATION ROLES IN APPLICATION SNOWFLAKE;**  
-4. Grant Specific Models to user role: **GRANT** **APPLICATION ROLE** **SNOWFLAKE.**"CORTEX-MODEL-ROLE-LLAMA3.1-70B" **TO** **ROLE** MY_ROLE**;**  
-   1. Grant all models to a specific role: `GRANT APPLICATION ROLE SNOWFLAKE."CORTEX-MODEL-ROLE-ALL" TO ROLE MY_ROLE;`
+1. To use RBAC exclusively, set `CORTEX_MODELS_ALLOWLIST` to 'None'.   
+2. create model objects in the `SNOWFLAKE.MODELS` schema that *represent* the Cortex models  
+3. Refresh available models:  `CALL SNOWFLAKE.MODELS.CORTEX_BASE_MODELS_REFRESH();`   
+   1. Optional: `SHOW MODELS IN SNOWFLAKE.MODELS;`    
+   2. View application roles - `SHOW APPLICATION ROLES IN APPLICATION SNOWFLAKE;`    
+4. Grant Specific Models to user role: `GRANT APPLICATION ROLE SNOWFLAKE."CORTEX-MODEL-ROLE-LLAMA3.1-70B" TO ROLE MY_ROLE;`    
+   1. Grant all models to a specific role: `GRANT APPLICATION ROLE SNOWFLAKE."CORTEX-MODEL-ROLE-ALL" TO ROLE MY_ROLE;`  
 
 Auth Flow:
 
-1. First cortex looks in SNOWFLAKE.MODELS to see if it is available  
-2. Then checks RBAC to see if access is allowed  
-3. If no model is found, cortex looks at account-level allow list
+1. First cortex looks in SNOWFLAKE.MODELS to see if it is available   
+2. Then checks RBAC to see if access is allowed   
+3. If no model is found, cortex looks at account-level allow list  
 
 Common Pitfalls
 
-- RBAC/Allow list ok, but model not available in region  
+- RBAC/Allow list ok, but model not available in region    
 - May have access to models, but not AI features (ex: CORTEX_USER database role)  
 - Not all features support model access controls  
 - Secondary roles obscure permissions  
-- Model names are accidently quoted and are case sensitive
+- Model names are accidently quoted and are case sensitive  
 
 Availability - [https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql\#label-cortex-llm-rbac](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql#label-cortex-llm-rbac)
 
@@ -44,17 +43,19 @@ Builtin Database Roles, (In the SNOWFLAKE database)
 - CORTEX_AGENT_USER
 
 Document intelligence grants -  
-GRANT DATABASE ROLE SNOWFLAKE.DOCUMENT_INTELLIGENCE_CREATOR FROM ROLE X;
+`GRANT DATABASE ROLE SNOWFLAKE.DOCUMENT_INTELLIGENCE_CREATOR FROM ROLE X;`
 
 Allocates capacity for 1 month term  
-**GRANT** **CREATE** **PROVISIONED THROUGHPUT** **ON** **ACCOUNT** **TO** **ROLE** **\<role\>**  
-**GRANT** **USAGE** **ON** **PROVISIONED THROUGHPUT** **\<**pt_id**\>** **TO** **ROLE** **\<role\>**
+```sql
+GRANT CREATE PROVISIONED THROUGHPUT ON ACCOUNT TO ROLE <role> 
+GRANT USAGE ON PROVISIONED THROUGHPUT <pt_id> TO ROLE <role>
+```
 
 #### CORTEX_MODELS_ALLOWLIST parameter
 
 Account level  
 Models that can be accessed, ex:  
-**ALTER** **ACCOUNT** **SET** **CORTEX_MODELS_ALLOWLIST** **\=** 'All'**;**
+`ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'All';`
 
 #### Cortex LLM REST API Auth Methods
 
@@ -64,15 +65,15 @@ Models that can be accessed, ex:
 
 #### COMPLETE (SNOWFLAKE.CORTEX)
 
-(see section 2\)
+(see section 2)
 
 #### TRY_COMPLETE(SNOWFLAKE_CORTEX)
 
-(see section 2\)
+(see section 2)
 
 #### Cortex LLM Playground (PuPr)
 
-### Data Safety \+ Security Considerations
+### Data Safety + Security Considerations
 
 - Is Data leaving/going to LLMs:  
   - Not shared between customers  
@@ -82,14 +83,14 @@ Models that can be accessed, ex:
 ### Rest API Authentication Methods
 
 - OAuth  
-  - Interna \+ External OAuth supported  
+  - Interna + External OAuth supported  
 - RSA key/Key Pair  
   - Setup key pairs  
-  - Generate JWT -\> Bearer token  
+  - Generate JWT -> Bearer token  
 - PAT  
   - Pass as bearer token
 
-## Guardrails \+ Unsafe LLM Responses
+## Guardrails + Unsafe LLM Responses
 
 ### Cortex Guard
 
@@ -116,7 +117,7 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 - Guardrails options: true/false/True/False/1/0
 - Can view usage in usage history table
 
-### Methods To Reduce Model Hallucinations \+ Bias
+### Methods To Reduce Model Hallucinations + Bias
 
 - Model size vs hallucinations  
 - Temperature (creativity vs “factual” answers)  
@@ -128,7 +129,7 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 - SNOWFLAKE.MODELS.CORTEX_BASE_MODELS_REFRESH()  
 - 
 
-## Monitor \+ Optimize Snowflake Cortex Cost
+## Monitor + Optimize Snowflake Cortex Cost
 
 ### Cortex Search
 
@@ -136,8 +137,8 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 
 Costs
 
-- Virtual Warehouse Compute  
-  - refreshes, building the search index. If no changes, then no credits used  
+- Virtual Warehouse Compute    
+  - refreshes, building the search index. If no changes, then no credits used   
 - EMBED_TEXT - embeddings for each row inserted or updated  
   - Charges by token  
 - Serving Compute - multi-tenant serving  
@@ -145,70 +146,72 @@ Costs
 - Storage - materialized source query  
   - Charges by TB  
 - Cloud Services Compute - check if changes in base objects to trigger virtual warehouse  
-  - Only billed if cloud service cost is \>10% of daily wh cost
+  - Only billed if cloud service cost is \>10% of daily wh cost  
 
 Cost Considerations
 
-- Minimize wh size  
-- Suspend indexing  
+- Minimize wh size   
+- Suspend indexing   
 - Use a longer target lag  
 - Define primary keys  
 - Bundle changes (minimize re-indexing)  
 - Minimize changes to source data  
 - Keep source query simple  
-- Suspend serving when not needed
+- Suspend serving when not needed  
 
-**CREATE** **OR** **REPLACE** **CORTEX SEARCH SERVICE** mysvc  
-  **ON** transcript_text  
-  **ATTRIBUTES** region  
-  **WAREHOUSE** \= mywh  
-  **TARGET_LAG** \= '1 hour'  
-  **EMBEDDING_MODEL** \= 'snowflake-arctic-embed-l-v2.0'  
-  **INITIALIZE** \= **ON_SCHEDULE**  
-**AS** **SELECT** \* **FROM** support_db.public.transcripts_etl;
+```sql
+CREATE OR REPLACE CORTEX SEARCH SERVICE mysvc  
+  ON transcript_text  
+  ATTRIBUTES region  
+  WAREHOUSE = mywh  
+  TARGET_LAG = '1 hour'  
+  EMBEDDING_MODEL = 'snowflake-arctic-embed-l-v2.0'  
+  INITIALIZE = ON_SCHEDULE  
+AS SELECT * FROM support_db.public.transcripts_etl;
+```
 
 ### Cortex Analyst
 
 Cost Considerations:
 
-- Based on number of **messages processed** (per 1000 messages) and **tokens** (depending)  
-- Tokens **only** affect cost when Cortex Analyst is invoked using Cortex Agents, otherwise number of tokens doesn’t matter  
-- Warehouse charges only when executing SQL  
-- View Usage: **SELECT** **\*** **FROM** **SNOWFLAKE.**ACCOUNT_USAGE**.**CORTEX_ANALYST_USAGE_HISTORY**;**
+- Based on number of messages processed (per 1000 messages) and tokens (depending)   
+- Tokens only affect cost when Cortex Analyst is invoked using Cortex Agents, otherwise number of tokens doesn’t matter    
+- Warehouse charges only when executing SQL    
+- View Usage: `SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_ANALYST_USAGE_HISTORY;`  
 
-enable/disable with:  
-ALTER ACCOUNT SET ENABLE_CORTEX_ANALYST \= FALSE;
+enable/disable with:   
+`ALTER ACCOUNT SET ENABLE_CORTEX_ANALYST = FALSE;`  
 
 ### Cortex LLM Functions
 
-- Minimize Tokens  
-- Token Cost Implications
+- Minimize Tokens   
+- Token Cost Implications  
 
-Cost Considerations:
+Cost Considerations:  
 
-- Input/Output Tokens  
-- Auditing  
-  - Check costs (lookup)  
-    - CORTEX_FUNCTIONS_USAGE_HISTORY view  
-    - CORTEX_FUNCTIONS_QUERY_USAGE_HISTORY view
+- Input/Output Tokens    
+- Auditing   
+  - Check costs (lookup)   
+    - CORTEX_FUNCTIONS_USAGE_HISTORY view   
+    - CORTEX_FUNCTIONS_QUERY_USAGE_HISTORY view  
 
-### Tracking Model Usage \+ Consumption
+### Tracking Model Usage + Consumption
 
-(usage \+ consumption/monitoring tables)
+(usage + consumption/monitoring tables)  
 
-- Usage Quotas
+- Usage Quotas  
 
-Account Usage Views:
+Account Usage Views:  
 
-- CORTEX_FUNCTIONS_USAGE_HISTORY  
-- CORTEX_FUNCTIONS_QUERY_USAGE_HISTORY  
-- METERING_DAILY_HISTORY  
-- CORTEX_SEARCH_DAILY_USAGE_HISTORY  
-- CORTEX_SEARCH_SERVING_USAGE_HISTORY  
-- CORTEX_DOCUMENT_PROCESSING_USAGE_HISTORY  
-- CORTEX_ANALYST_USAGE_HISTORY  
-- CORTEX_FINE_TUNING_USAGE_HISTORY  
-- CORTEX_PROVISIONED_THROUGHPUT_USAGE_HISTORY
+- CORTEX_FUNCTIONS_USAGE_HISTORY   
+- CORTEX_FUNCTIONS_QUERY_USAGE_HISTORY   
+- METERING_DAILY_HISTORY   
+- CORTEX_SEARCH_DAILY_USAGE_HISTORY   
+- CORTEX_SEARCH_SERVING_USAGE_HISTORY   
+- CORTEX_DOCUMENT_PROCESSING_USAGE_HISTORY   
+- CORTEX_ANALYST_USAGE_HISTORY   
+- CORTEX_FINE_TUNING_USAGE_HISTORY   
+- CORTEX_PROVISIONED_THROUGHPUT_USAGE_HISTORY  
 
 #### CORTEX_FUNCTIONS_USAGE_HISTORY view
 
@@ -249,54 +252,56 @@ Hourly serving credits per service
 
 #### CORTEX_DOCUMENT_PROCESSING_USAGE_HISTORY view
 
-Document AI processing function activity, including \<model_build_name\>\!PREDICT, PARSE_DOCUMENT (SNOWFLAKE.CORTEX), and AI_EXTRACT calls  
+Document AI processing function activity, including `<model_build_name>!PREDICT, PARSE_DOCUMENT (SNOWFLAKE.CORTEX)`, and `AI_EXTRACT` calls  
 Credits, functions, model names, etc…  
 Up to 1 year
 
 #### SNOWFLAKE.LOCAL.CORTEX_ANALYST_REQUESTS table function
 
-Logs for semantic view or model\\  
-**SELECT** \* **FROM** **TABLE**(  
-  **SNOWFLAKE**.**LOCAL**.CORTEX_ANALYST_REQUESTS(  
-    '\<semantic_model_or_view_type\>',  
-    '\<semantic_model_or_view_name\>'  
+Logs for semantic view or model
+```sql
+SELECT * FROM TABLE(  
+  SNOWFLAKE.LOCAL.CORTEX_ANALYST_REQUESTS(  
+    '<semantic_model_or_view_type>',  
+    '<semantic_model_or_view_name>'  
   )  
 );
+```
 
-model/view type: “FILE_ON_STAGE” or “SEMANTIC_VIEW”  
-Name: fully qualified stage path, or semantic view name
+model/view type: “FILE_ON_STAGE” or “SEMANTIC_VIEW”   
+Name: fully qualified stage path, or semantic view name  
 
 #### CORTEX_ANALYST_USAGE_HISTORY
 
-Aggregated 1 hr, analyst credits used, metadata
-- only successfull (HTTP 200) requests are counted
-- just for text genernation
-- Additional sql execution costs are not included here
-- model selection may depend on RBAC and best available models
+Aggregated 1 hr, analyst credits used, metadata  
+- only successfull (HTTP 200) requests are counted  
+- just for text genernation  
+- Additional sql execution costs are not included here  
+- model selection may depend on RBAC and best available models  
 
 #### CORTEX_FINE_TUNING_USAGE_HISTORY
 
-Tokens \+ training credits by base model  
-not costs for using the fine-tuned model in inference, costs for storage, or costs associated with data replication
+Tokens + training credits by base model   
+not costs for using the fine-tuned model in inference, costs for storage, or costs associated with data  replication
 
 #### CORTEX_PROVISIONED_THROUGHPUT_USAGE_HISTORY
 
-Billing for provisioned throughputs
+Billing for provisioned throughputs  
 
 #### CORTEX_AISQL_USAGE_HISTORY
-Include Input/output token granularity for queries
+Include Input/output token granularity for queries  
 
 ## Use Snowflake AI Observability Tools
 
 ### Snowflake AI Observability
 
 Requires TruLens  
-Roles \+ Privileges:
+Roles + Privileges:  
 
-- AI_OBSERVABILITY_EVENTS_LOOKUP role  
+- AI_OBSERVABILITY_EVENTS_LOOKUP role    
 - CORTEX_USER database role  
 - CREATE TASK privilege on schema  
-- EXECUTE TASK privilege
+- EXECUTE TASK privilege  
 
 #### Eval Metrics
 
@@ -305,17 +310,17 @@ LLM as Judge \+
 - Accuracy  
 - Latency  
 - Usage  
-- Cost
+- Cost  
 
-**Differentiate between - trace, logging, event table**
+Differentiate between - trace, logging, event table  
 
 #### Comparisons
 
-Side by side of model responses
+Side by side of model responses  
 
 #### Tracing
 
-Application execution across workflows, connects events/logs  
+Application execution across workflows, connects events/logs   
 (why it happened)
 
 #### Logging
@@ -342,6 +347,19 @@ TruLens Outputs:
   - *not necessarily *Correctness*    
 - Retrieved Contexts (For RAG)  
 
-Also relevant -  
-- Coherence
+Also relevant -    
+- Coherence  
 
+
+Creating and executing a run involves four main steps:  
+- **Creation:** After creating an application and a version, add a new run for the version by specifying a dataset.  
+- **Invocation:** Start the run, which reads inputs from the dataset, invokes the application for each input, generates traces, and stores the information in your Snowflake account.  
+- **Computation:** After invocation, trigger computation by specifying metrics to be computed. You can trigger multiple computations and add new metrics later for an existing run.  
+- **Visualization:** Visualize the run results in **Snowsight** by logging into your Snowflake account. Runs are listed within their relevant applications in AI & ML under Evaluations.  
+
+Privileges:
+- DATABASE ROLE SNOWFLAKE.CORTEX_USER
+- APPLICATION ROLE SNOWFLAKE.AI_OBSERVABILITY_EVENTS_LOOKUP
+- CREATE EXTERNAL AGENT ON SCHEMA app_schema
+- CREATE TASK ON SCHEMA app_schema
+- EXECUTE TASK ON ACCOUNT

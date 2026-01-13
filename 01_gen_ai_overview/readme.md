@@ -26,7 +26,7 @@
 - Gaurdrails  
 - Required Privileges  
 - Cortex LLM Functions  
-  - Control model access (CORTEX\_MODELS\_ALLOWLIST, etc..)
+  - Control model access (CORTEX_MODELS_ALLOWLIST, etc..)
 
 ### Interfaces
 
@@ -52,10 +52,10 @@
 
 - Structured numerical representations, from unstructured data such as text and images, while preserving semantic notions of similarity and dissimilarity in the geometry of the vectors they produce.
 
-**VECTOR**( \<type\>, \<dimension\> )  
-**VECTOR(FLOAT,** 256**)**
+VECTOR( \<type\>, \<dimension\> )  
+VECTOR(FLOAT, 256)
 
-For VECTOR columns, you must load and unload data as an **ARRAY** and then cast it to a VECTOR when you use it
+For VECTOR columns, you must load and unload data as an ARRAY and then cast it to a VECTOR when you use it
 
 #### Fine Tuning
 
@@ -85,49 +85,51 @@ For VECTOR columns, you must load and unload data as an **ARRAY** and then cast 
 Cortex Agents orchestrate across both structured and unstructured data sources to deliver insights  
 Workflow Steps/Components:
 
-1. Planning \- Explore options, split tasks, route to tools  
-2. Tool Use \- processing with tools  
-3. Reflection \- evaluate next step  
-4. Monitor \+ Iterate \- TrueLens can monitor agent interaction
+1. Planning - Explore options, split tasks, route to tools   
+2. Tool Use - processing with tools   
+3. Reflection - evaluate next step    
+4. Monitor \+ Iterate - TrueLens can monitor agent interaction  
 
 Concepts:
 
-- Agent Object \- all agent metadata  
-- Threads \- preserve history of interactions  
-- Orchestration (Models, Instructions, Sample Questions)  
-- Tools (custom, cortex analyst semantic view, cortex search service)
+- Agent Object - all agent metadata   
+- Threads - preserve history of interactions   
+- Orchestration (Models, Instructions, Sample Questions)   
+- Tools (custom, cortex analyst semantic view, cortex search service)  
 
 Considerations/Access:
 
-- SNOWFLAKE.CORTEX\_USER or SNOWFLAKE.CORTEX\_AGENT\_USER role granted  
-- SNOWFLAKE.CORTEX\_USER  \- All Cortex AI Features  
-- SNOWFLAKE.CORTEX\_AGENT\_USER \- Just Agent Features
+- SNOWFLAKE.CORTEX_USER or SNOWFLAKE.CORTEX_AGENT_USER role granted  
+- SNOWFLAKE.CORTEX_USER  - All Cortex AI Features   
+- SNOWFLAKE.CORTEX_AGENT_USER - Just Agent Features  
 
 Cost Considerations:
 
-- Orchestration based on tokens used  
-- Cortex Analyst charged per token  
-- Cortex Search depends on size of index \+ time persisted  
-- Warehouse charges depend on size of warehouse \+ time
+- Orchestration based on tokens used   
+- Cortex Analyst charged per token   
+- Cortex Search depends on size of index \+ time persisted   
+- Warehouse charges depend on size of warehouse \+ time  
 
 Interact With:
 
 - REST APIs  
 - UI  
-- SQL
+- SQL  
 
 ### Cortex Region Inferences
 
-To support more models, cross region inference can be enabled, ex:  
-**ALTER** **ACCOUNT** **SET** **CORTEX\_ENABLED\_CROSS\_REGION** **\=** 'AWS\_US'**;**  
-**ALTER** **ACCOUNT** **SET** **CORTEX\_ENABLED\_CROSS\_REGION** **\=** 'ANY\_REGION'**;**  
-**ALTER** **ACCOUNT** **SET** **CORTEX\_ENABLED\_CROSS\_REGION** **\=** 'DISABLED'**; \--default region**  
-**ALTER ACCOUNT SET CORTEX\_ENABLED\_CROSS\_REGION \= 'AWS\_US,AWS\_EU'**
-
+To support more models, cross region inference can be enabled, ex:   
+`ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AWS_US';`  
+`ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION';`  
+`ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'DISABLED';` --default region  
+`ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AWS_US,AWS_EU'`  
+ 
 Considerations:
 
 - Gov regions are limited (US East, US West)  
-- Credits are considered consumed in the requesting region  
-- No data egress charges for cross region  
-- May have additional latency (needs to be tested)  
-- Model availability varies
+- Credits are considered consumed in the requesting region   
+- No data egress charges for cross region   
+- May have additional latency (needs to be tested)   
+- Model availability varies 
+
+**Requesting Region:** This is the home region where your Snowflake account is primarily hosted and from where you initiate a request

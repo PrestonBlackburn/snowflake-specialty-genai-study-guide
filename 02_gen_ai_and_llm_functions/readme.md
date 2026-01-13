@@ -1,6 +1,6 @@
 # Section 2: GenAI and LLM Functions (40%)
 
-## Apply GenAI \+ LLM Functions
+## Apply GenAI + LLM Functions
 
 (possibly small syntax differences here)
 
@@ -8,17 +8,17 @@
 
 Function Call Requirements (generally):
 
-- Usage on SNOWFLAKE.CORTEX schema  
-- Is in \-\> SNOWFLAKE.CORTEX\_USER database role
+- Usage on `SNOWFLAKE.CORTEX` schema  
+- Is in -> `SNOWFLAKE.CORTEX_USER` database role
 
-*NOTE*: SNOWFLAKE.CORTEX\_USER database role is granted to the PUBLIC role by default
+*NOTE*: SNOWFLAKE.CORTEX_USER database role is granted to the PUBLIC role by default
 
-#### **COMPLETE**
+#### COMPLETE
 
 Standard llm usage  
 General usage
 
-**Basic Usage**  
+Basic Usage  
 ```sql
 SNOWFLAKE.CORTEX.COMPLETE(
     <model>, <prompt_or_history> [ , <options> ] )
@@ -96,8 +96,8 @@ SELECT AI_COMPLETE(
 );
 ```
 
-**Usage With File (Multi-modal)**  
-Beyond completion use cases \- Comparing images, Captioning images, Classifying images, Extracting entities from images
+Usage With File (Multi-modal)  
+Beyond completion use cases - Comparing images, Captioning images, Classifying images, Extracting entities from images
 
 ```sql
 SNOWFLAKE.CORTEX.COMPLETE(
@@ -124,21 +124,21 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet',
 FROM image_table;
 ```
 
-Where “TO\_FILE” creates a file object from the stage path (optional for prompt object)
+Where “TO_FILE” creates a file object from the stage path (optional for prompt object)
 
-**Usage With Structured Outputs**
+Usage With Structured Outputs
 
-COMPLETE \*With Structured Outputs\*  
-\*These are actually in AI\_COMPLETE\*  
+COMPLETE *With Structured Outputs*  
+*These are actually in AI_COMPLETE*  
 Response format is required, can be done in json or pydantic
 
-#### CLASSIFY\_TEXT
+#### CLASSIFY_TEXT
 
 Task specific  
 ```sql
 SNOWFLAKE.CORTEX.CLASSIFY_TEXT( <input> , <list_of_categories>, [ <options> ] )
 ```
-Can provide examples in \<options\>, but limit of 20  
+Can provide examples in <options>, but limit of 20  
 Basic Example  
 ```sql
 SELECT SNOWFLAKE.CORTEX.CLASSIFY_TEXT('One day I will see the world', ['travel', 'cooking']);
@@ -182,7 +182,7 @@ SELECT AI_CLASSIFY(
 );
 ```
 
-#### EXTRACT\_ANSWER
+#### EXTRACT_ANSWER
 
 Task specific  
 Q+A From “document” (just text or json)   
@@ -197,7 +197,7 @@ SELECT SNOWFLAKE.CORTEX.EXTRACT_ANSWER(review_content,
     'What dishes does this review mention?')
 FROM reviews LIMIT 10;
 ```
-#### PARSE\_DOCUMENT
+#### PARSE_DOCUMENT
 
 Task specific  
 OCR Necessary if text only  
@@ -206,7 +206,7 @@ LAYOUT needed if tables data is needed
 SNOWFLAKE.CORTEX.PARSE_DOCUMENT( '@<stage>', '<path>', [ <options> ] )
 ```
 
-Modes: OCR (text only) and LAYOUT (text \+ layout, ex: tables)  
+Modes: OCR (text only) and LAYOUT (text + layout, ex: tables)  
 ```sql
 SELECT TO_VARCHAR(
     SNOWFLAKE.CORTEX.PARSE_DOCUMENT(
@@ -248,7 +248,7 @@ Also an output option:
 "errorInformation": Contains error information if document can’t be parsed  
 And metadata for page count if splitting on pages  
 ```sql
-**SELECT**  
+SELECT  
 SELECT TO_VARCHAR(
     SNOWFLAKE.CORTEX.PARSE_DOCUMENT(
         '@PARSE_DOCUMENT.DEMO.documents',
@@ -281,13 +281,13 @@ SELECT TO_VARCHAR(
 #### SENTIMENT
 
 Task specific  
-Overall sentiment score \-1 to 1  
+Overall sentiment score -1 to 1  
 ```sql
 SNOWFLAKE.CORTEX.SENTIMENT(<text>)
 ```
 
 ```sql
-SELECT SNOWFLAKE.CORTEX.SENTIMENT('A tourist\'s delight, in low urban light,
+SELECT SNOWFLAKE.CORTEX.SENTIMENT('A tourist's delight, in low urban light,
   Recommended gem, a pizza night sight. Swift arrival, a pleasure so right,
   Yet, pockets felt lighter, a slight pricey bite. 💰🍕🚀');
 ```
@@ -330,7 +330,7 @@ SELECT SNOWFLAKE.CORTEX.TRANSLATE(review_content, 'en', 'de') FROM reviews LIMIT
 ```
 
 
-#### EMBED\_TEXT\_768
+#### EMBED_TEXT_768
 
 Task specific  
 
@@ -342,7 +342,7 @@ SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'Embed me plz
 ```
 Models: snowflake-arctic-embed-m-v1.5, snowflake-arctic-embed-m, e5-base-v2
 
-#### EMBED\_TEXT\_1024
+#### EMBED_TEXT_1024
 
 Task specific  
 
@@ -354,47 +354,208 @@ SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_1024('nv-embed-qa-4', 'embed me plz');
 ```
 Models: snowflake-arctic-embed-l-v2.0, snowflake-arctic-embed-l-v2.0-8k, nv-embed-qa-4, multilingual-e5-large, voyage-multilingual-2
 
+#### AI_SIMILARITY
+
+```sql
+AI_SIMILARITY( <input1>, <input2> )
+or
+AI_SIMILARITY( <input1>, <input2>, <config_object> )
+```
+Usage:
+```sql
+SELECT
+    review
+FROM restaurant_reviews
+ORDER BY AI_SIMILARITY(review, 'I love the food here!');
+```
+
 ### Cortex Search
 
 Either use `ATTRIBUTES` for automatic vectorization or `TEXT INDEXES + VECTOR INDEXES` for custum vectorization
 
-**Model Selection:** You cannot choose a model directly. Instead, Cortex Analyst assigns each request to a model, or to a combination of models, taking into account the following factors:
+Model Selection: You cannot choose a model directly. Instead, Cortex Analyst assigns each request to a model, or to a combination of models, taking into account the following factors:
 - The models available in your Snowflake region.
 - The account’s cross-region inference configuration.
 - Any model-level RBAC restrictions you have established.
 
 ### Cortex Analyst
 
+Usage - POST request to analyst endpoint:  
+`POST /api/v2/cortex/analyst/message`  
+
+<br/>
+
+Responses Via the API:
+The body of the response contains a message object that contains the following fields:  
+- message: Messages of the conversation between the user and analyst.  
+- message (object): Represents a message within a chat.  
+- message.role (string:enum): The entity that produced the message. One of user or analyst.  
+- message.content[] (object): The content object that is part of a message.   
+- message.content[].type (string:enum): The content type of the message. One of text, suggestion, or sql.  
+- message.content[].text (string): The text of the content. Only returned for content type text.  
+- message.content[].statement (string): A SQL statement. Only returned for content type sql.  
+- message.content[].confidence (object): Contains confidence-related information. Only returned for the sql content type.  
+- message.content[].confidence.verified_query_used (object): Represents the verified query from Verified Query Repository used in SQL response generation. If no verified query used, the field value is null.  
+- message.content[].confidence.verified_query_used.name (string): The name of the verified query used, extracted from the Verified Query Repository.  
+- message.content[].confidence.verified_query_used.question (string): The question that is answered by the verified query, extracted from the Verified Query Repository.  
+- message.content[].confidence.verified_query_used.sql (string): The SQL statement of the verified query used, extracted from the Verified Query Repository.  
+- message.content[].confidence.verified_query_used.verified_at (integer): The numeric representation of the timestamp when the query is verified, extracted from the Verified Query Repository.  
+- message.content[].confidence.verified_query_used.verified_by (string): The person who verified the query, extracted from the Verified Query Repository.  
+- message.content[].suggestions (string): If SQL cannot be generated, a list of questions the semantic model can generate SQL for. Only returned for content type suggestion.  
+- warnings: List of warnings from the analyst about the user’s request.  
+- warnings[].message (string): Contains a detailed description of one individual warning.  
+- response_metadata (object): Metadata containing response generation details.  
+- response_metadata.model_names: List of models used to generate response.  
+- response_metadata.cortex_search_retrieval (object): Entities resolved with cortex search.  
+- response_metadata.question_category (string): How the question in the request is categorized.  
+
+3 Types of content object (`type` field):  
+- text  
+- suggestions  
+- sql  
+
+
+Example Response:
+```json
+{
+    "request_id": "75d343ee-699c-483f-83a1-e314609fb563",
+    "message": {
+        "role": "analyst",
+        "content": [
+            {
+                "type": "text",
+                "text": "We interpreted your question as ..."
+            },
+            {
+                "type": "sql",
+                "statement": "SELECT * FROM table",
+                "confidence": {
+                    "verified_query_used": {
+                        "name": "My verified query",
+                        "question": "What was the total revenue?",
+                        "sql": "SELECT * FROM table2",
+                        "verified_at": 1714497970,
+                        "verified_by": "Jane Doe"
+                    }
+                }
+            },
+            // for responses to ambigous questions
+            {
+                "type": "suggestions",
+                "suggestions": [
+                    "which company had the most revenue?",
+                    "which company placed the most orders?"
+                ]
+            }
+        ]
+    },
+    "warnings": [
+        {
+            "message": "Table table1 has (30) columns, which exceeds the recommended maximum of 10"
+        },
+        {
+            "message": "Table table2 has (40) columns, which exceeds the recommended maximum of 10"
+        }
+    ],
+    "response_metadata": {
+        "model_names": [
+            "claude-3-5-sonnet"
+        ],
+        "cortex_search_retrieval": [
+            {
+                "service": "my_db.my_schema.my_search_service",
+                "response_body": {
+                    "results": [
+                        {
+                            "CUST_NAME": "customer1"
+                        }
+                    ],
+                    "request_id": "request1"
+                },
+                "query": "'customer1'"
+            }
+        ],
+        "question_category": "CLEAR_SQL"
+    }
+}
+```
+
+
+**Multi-Turn Conversations**  
+*Note that the semantic model file can also be provided*  
+```json
+{
+    "messages": [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "What is the month over month revenue growth for 2021 in Asia?"
+                }
+            ]
+        },
+        {
+            "role": "analyst",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "We interpreted your question as ..."
+                },
+                {
+                    "type": "sql",
+                    "statement": "SELECT * FROM table"
+                }
+            ]
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "What about North America?"
+                }
+            ]
+        },
+    ],
+    "semantic_model_file": "@my_stage/my_semantic_model.yaml"
+}
+```
+
+Limitations on Multi-Turn Conversations:  
+- **Access to the results of previous SQL queries** - Cortex Analyst doesn’t have access to results from previous SQL queries. For example, if you first ask, “What are my products?” and then ask, “What is the revenue of the second product?”, Cortex Analyst cannot refer to the list of products from the first query to get the second product.  
+- **General business insights** - Cortex Analyst is limited to answering questions that can be resolved with SQL. It does not generate insights for broader business-related queries, such as “What trends do you observe?”  
+- **Long conversations** - If a conversation includes too many turns or the user shifts intent frequently, Cortex Analyst might struggle to interpret the follow-up questions. In such cases, reset the conversation and start again.  
 
 ### Cortex Fine Tuning
 
 Privileges:
 
 - CREATE MODEL or OWNERSHIP on schema  
-- `**GRANT** **CREATE** **MODEL** **ON** **SCHEMA** my\_schema **TO** **ROLE** my\_role**;**`
+- `GRANT CREATE MODEL ON SCHEMA my_schema TO ROLE my_role;`
 - Usage on database  
-- SNOWFLAKE.CORTEX\_USER database role  
+- SNOWFLAKE.CORTEX_USER database role  
 - OWNERSHIP privilege on the model is required to access the fine-tuned model’s artifacts
 
 Cost Considerations:
 
-- Fine-tuning trained tokens \= number of input tokens \* number of epochs trained  
+- Fine-tuning trained tokens = number of input tokens * number of epochs trained  
 - For the COMPLETE function, which generates new text in the response, both input and output tokens are counted.  
-- Finetune **’Describe’** also shows token usage  
-- Also in `**CORTEX\_FINE\_TUNING\_USAGE\_HISTORY**`
+- Finetune ’Describe’ also shows token usage  
+- Also in `CORTEX_FINE_TUNING_USAGE_HISTORY`
 
 Considerations:
 
-- Limits on row based on epochs \+ models  
-- Effective row count limit \= 1 epoch limit for base model / number of epochs trained  
+- Limits on row based on epochs + models  
+- Effective row count limit = 1 epoch limit for base model / number of epochs trained  
 - So higher epochs mean lower total rows can be used  
-- Llama 3.1 \+ Mixtrial models can be finetuned  
+- Llama 3.1 + Mixtrial models can be finetuned  
 - Fine Tuning results data in the Snowflake Model Registry UI  
 - If a base model is removed from the Cortex LLM Functions, your fine-tuned model will no longer work  
 - [Cross-region inference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cross-region-inference) does not support fine-tuned models, must use database replication  
 - table or view and the query result must contain columns named prompt and completion
 
-4 cases of fine tuning \-   
+4 cases of fine tuning -   
 ```sql
 SNOWFLAKE.CORTEX.FINETUNE( 
   { 'CREATE' | 'SHOW' | 'DESCRIBE' | 'CANCEL' }  
@@ -450,7 +611,7 @@ SNOWFLAKE.CORTEX.FINETUNE(
 ```
 
 ```sql
-SNOWFLAKE.CORTEX.FINETUNE**('SHOW')
+SNOWFLAKE.CORTEX.FINETUNE('SHOW')
 ```
 
 ```sql
@@ -474,11 +635,11 @@ for row in values:
 """)
 
 # Compute the pairwise inner product between columns a and b 
-cur.execute("SELECT VECTOR\_INNER\_PRODUCT(a, b) FROM vectors") 
+cur.execute("SELECT VECTOR_INNER_PRODUCT(a, b) FROM vectors") 
 print(cur.fetchall())
 ```
 
-#### VECTOR\_INNER\_PRODUCT
+#### VECTOR_INNER_PRODUCT
 
 Magnitude sensitive  
 ```sql
@@ -490,12 +651,12 @@ VECTOR_INNER_PRODUCT( <vector>, <vector> )
 SELECT VECTOR_INNER_PRODUCT( [1.1,2.2,3]::VECTOR(FLOAT,3), [1,1,1]::VECTOR(FLOAT,3) );
 ```
 
-\-- Compute the pairwise inner product between columns a and b  
+-- Compute the pairwise inner product between columns a and b    
 ```sql
 SELECT VECTOR_INNER_PRODUCT( SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'Embed me plz')::VECTOR(FLOAT, 768),  SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'DO NOT EMBED')::VECTOR(FLOAT, 768));
 ```
 
-#### VECTOR\_COSINE\_SIMILARITY
+#### VECTOR_COSINE_SIMILARITY
 
 Best when vector length doesn’t matter, just direction, but very good in high dimensional spaces  
 ```sql
@@ -508,7 +669,7 @@ SELECT a, VECTOR_COSINE_SIMILARITY(a, [1,2,3]::VECTOR(FLOAT, 3)) AS similarity
   LIMIT 1;
 ```
 
-#### VECTOR\_L1\_DISTANCE
+#### VECTOR_L1_DISTANCE
 
 Manhattan distance of 2 vectors (stair step)  
 Not great if data is already normalized  
@@ -518,7 +679,7 @@ Magnitude sensitive
 VECTOR_L1_DISTANCE( <vector>, <vector> )
 ```
 
-#### VECTOR\_L2\_DISTANCE
+#### VECTOR_L2_DISTANCE
 
 #### Euclidean distance of 2 vectors (diagonal)
 
@@ -531,7 +692,7 @@ Magnitude sensitive
 
 ### Helper Functions
 
-#### COUNT\_TOKENS
+#### COUNT_TOKENS
 
 Returns number of tokens   
 Doesn't support closed source 3rd party models or fine tuned models
@@ -542,7 +703,7 @@ SNOWFLAKE.CORTEX.COUNT_TOKENS( <model_name> , <input_text> )
 SELECT SNOWFLAKE.CORTEX.COUNT_TOKENS('llama3-8b', 'embed me plz');
 ```
 
-#### TRY\_COMPLETE
+#### TRY_COMPLETE
 
 General purpose  
 Same a complete, but returns `NULL` instead of an error  
@@ -550,9 +711,9 @@ Same a complete, but returns `NULL` instead of an error
 SNOWFLAKE.CORTEX.TRY_COMPLETE( <model>, <prompt_or_history> [ , <options> ] )
 ```
 
-#### SPLIT\_TEXT\_RECURSIVE\_CHARACTER
+#### SPLIT_TEXT_RECURSIVE_CHARACTER
 
-Chunk strings for search workflows. Recursive until all chunks are smaller than “chunk\_size”  
+Chunk strings for search workflows. Recursive until all chunks are smaller than “chunk_size”  
 ```sql
 SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER (
   '<text_to_split>',
@@ -579,56 +740,63 @@ chunks of 15 chars, 10 overlap, format "none" (not markdown), no seperators defi
 
 Formats:
 
-- `none`: No format-specific separators. Only the separators in the separators field are used for splitting.  
-- `markdown`: Separates on headers, code blocks, and tables, in addition to any separators in the separators field.
+- `none`: No format-specific separators. Only the separators in the separators field are used for splitting.    
+- `markdown`: Separates on headers, code blocks, and tables, in addition to any separators in the separators field.  
 
-Separators default: \[”\\n\\n”, “\\n”, “ “, “”\], meaning a paragraph break, a line break, a space, and between any two characters (the empty string).
+Separators default: [”\\n\\n”, “\\n”, “ “, “”\], meaning a paragraph break, a line break, a space, and between any two characters (the empty string).
 
 ### Choosing a model
 
-**Capability** \- Large/”Thinking” Models  
-**Latency** \- Small  models faster  
-**Cost** \- Small Models (and number total tokens)
+Capability - Large/”Thinking” Models  
+Latency - Small  models faster  
+Cost - Small Models (and number total tokens)  
 
 ## Perform Data Analysis Given Use Case
 
 ### Unstructured Data
 
-#### AI\_PARSE\_DOCUMENT / CORTEX PARSE\_DOCUMENT
+#### AI_PARSE_DOCUMENT / CORTEX PARSE_DOCUMENT
 
 OCR vs LAYOUT depending on the scenarios  
-(layout to get table data \+ preserve formatting)
+(layout to get table data + preserve formatting)
+Produces **Structured Outputs**
 
 Considerations:
 
-- Cost based on pages (different for diff file formats, ex: image \= page)  
-- Layout typically preferred (complex documents, retrieval systems, etc..)  
-- OCR for quick, high quality extraction, scanned documents
+- Cost based on pages (different for diff file formats, ex: image = page)  
+- Layout typically preferred (complex documents, retrieval systems, etc..)   
+- OCR for quick, high quality extraction, scanned documents  
+ 
+Use Cases:   
+- **RAG pipeline optimization:** High-fidelity extraction ensures retrieval systems find relevant content with proper context, dramatically improving answer quality.    
+- **Knowledge base construction:** Structured output enables semantic search and AI reasoning across large document collections.   
+- **Automated document processing:** Extract entities, generate summaries, and perform analysis on complex documents using other Cortex AI Functions.  
+- **Multilingual AI workflows:** Process documents in twelve languages with consistent quality for global enterprise applications.  
 
 ### Structured Data
 
 ### Cortex Analyst
 
-Need to know yaml format well for the Semantic model  
-(capability vs latency vs cost)
+Need to know yaml format well for the Semantic model    
+(capability vs latency vs cost)  
 
-Considerations For Semantic Models
+Considerations For Semantic Models 
 
-- Create separate models for different domains or topics  
-- Minimize tables and columns used  
-- Wide tables \> long tables  
-- 2 MB size limit on the semantic model 
+- Create separate models for different domains or topics   
+- Minimize tables and columns used   
+- Wide tables > long tables   
+- 2 MB size limit on the semantic model  
 
 #### Cortex Analyst Verified Query Repository (VQR) 
 
-- Improve accuracy \+ trustworthiness  
+- Improve accuracy + trustworthiness  
 - 
 
-#### Integration With Cortex Search \- 
+#### Integration With Cortex Search - 
 
-- RAG over data  
-- Does incur additional storage \+ compute costs  
-- Best for higher cardinality (\>10 distinct values), otherwise can use built in search
+- RAG over data   
+- Does incur additional storage + compute costs   
+- Best for higher cardinality (>10 distinct values), otherwise can use built in search  
 
 ```sql
 -- Create the Cortex Search Service
@@ -664,19 +832,22 @@ tables:
 #### Cortex Analyst Suggested Questions
 
 - Automatically suggests new VQR queries  
-- Suggested based on  \- high frequency and novelty
+- Suggested based on  - 
+  - **High frequency:** Queries similar to the candidate appear frequently.   
+  - **Contains interesting semantic information:** Extremely simple queries are removed since they are unlikely to add value.   
+  - **Novelty:** No existing verified query looks similar.  
 
 #### Cortex Analyst Custom Instructions
 
-- custom\_instructions field  
-- Best Practices  
-  - Be Specific  
-  - Start Small  
-  - Preview Generated SQL Query  
-  - Iterate Gradually  
-- module\_custom\_instructions key in the top level of your semantic model to define custom instructions for specific components in the SQL generation pipeline. Supports:  
-  - question\_categorization: Define how Cortex Analyst should classify user questions (for example, by blocking certain topics or guiding user behavior).  
-  - sql\_generation: Specify how SQL should be generated (for example, data formatting and filtering).  
+- custom_instructions field   
+- Best Practices   
+  - Be Specific   
+  - Start Small   
+  - Preview Generated SQL Query   
+  - Iterate Gradually   
+- module_custom_instructions key in the top level of your semantic model to define custom instructions for  specific components in the SQL generation pipeline. Supports:    
+  - question_categorization: Define how Cortex Analyst should classify user questions (for example, by blocking certain topics or guiding user behavior).   
+  - sql_generation: Specify how SQL should be generated (for example, data formatting and filtering).  
 
 ```yaml
 # Name and description of the semantic model.
@@ -807,17 +978,19 @@ Example semantic view yaml:
 
 - Latency (fine-tuning, model size, etc…)
 
-Recommended using a warehouse size no larger than MEDIUM when calling Snowflake Cortex AI Functions
+Recommended using a warehouse size no larger than MEDIUM when calling Snowflake Cortex AI Functions  
 
-For low latency UI cases - Use REST API  
-For batch processes use SQL cortex functions  
+For low latency UI cases - Use REST API   
+For batch processes use SQL cortex functions   
 
 ## Build Chat Interface to Interact With Data
 
-Cortex analyst use case vs Custom API 
+Cortex analyst use case vs Custom API  
 
-- Structured data, natural language questions, multiple turns \-\> cortex analyst  
-- Custom app \-\> cortex accessed through rest api
+- Structured data, natural language questions, multiple turns -> cortex analyst  
+- Custom app -> cortex accessed through rest api  
+
+st.chat_message
 
 ### Setup The Snowflake Environment
 
@@ -825,14 +998,20 @@ Cortex analyst use case vs Custom API
 
 ### Chat Conversations
 
-- Multi-Turn Architecture  
-- Update Parameters
+- Multi-Turn Architecture   
+- Update Parameters  
+
+Streamlit:
+- `st.write` - general purpose rendering function
+- `st.chat_input` - user input for chat style apps
+- `st.markdown` - formatted text rendering
+- `st.chat_message` - supports st.write, plus modifying avatars
 
 ## Use Snowflake Cortex In Data Pipeline
 
 ### Snowflake Cortex
 
-Pipeline \- Arrange state in the correct order
+Pipeline - Arrange state in the correct order
 
 - Load to stage, parse document, chunk text, embedings, vector search
 
@@ -840,20 +1019,33 @@ Pipeline \- Arrange state in the correct order
 
 ### Using Snowpark Container Services
 
-If model is **not available** in Snowflake Cortex, must use docker container \+ compute pool (SPCS)
+If model is not available in Snowflake Cortex, must use docker container + compute pool (SPCS)
 
-- Environment Setup  
-- Docker Images  
-- Specification Files  
-- Create Compute Pool  
-- Create Image Repository
+- Environment Setup   
+- Docker Images   
+- Specification Files   
+- Create Compute Pool   
+- Create Image Repository   
+
+Creating A Compute Pool:
+```sql
+CREATE COMPUTE POOL tutorial_compute_pool
+  MIN_NODES = 1
+  MAX_NODES = 1
+  INSTANCE_FAMILY = CPU_X64_XS
+  AUTO_RESUME = FALSE; -- Defaults to true
+  INITIALLY_SUSPENDED = TRUE; -- Defaults to False
+```  
 
 ### Snowflake Model Registry
 
 UI Docs (images): [https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/snowsight-ui](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/snowsight-ui)
 
-ML models \-\> Model Registry  
+ML models -> Model Registry  
 Custom LLMs run on SPCS
+```python
+class snowflake.ml.registry.Registry(session: Session, *, database_name: Optional[str] = None, schema_name: Optional[str] = None)
+```
 ```python
 # Logging The Model  
 custom_mv = snowml_registry.log_model(
@@ -869,3 +1061,5 @@ custom_mv = snowml_registry.log_model(
 snowml_registry.show_models()
 custom_mv.run(snowpark_df).show()
 ```
+
+where - **model** – Supported model or ModelVersion object. - Supported model: Model object of supported types such as Scikit-learn, XGBoost, LightGBM, Snowpark ML, PyTorch, TorchScript, Tensorflow, Tensorflow Keras, MLFlow, HuggingFace Pipeline, Sentence Transformers, Peft-finetuned LLM, or Custom Model. - ModelVersion: Source ModelVersion object used to create the new ModelVersion object.  
