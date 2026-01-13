@@ -1,0 +1,10 @@
+------- Access Models Through RBAC Only -----------
+ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'None';
+
+-- refresh models
+CALL SNOWFLAKE.MODELS.CORTEX_BASE_MODELS_REFRESH();
+
+-- grant specific model usage
+GRANT APPLICATION ROLE SNOWFLAKE."CORTEX-MODEL-ROLE-LLAMA3.1-70B" TO ROLE PUBLIC;
+
+

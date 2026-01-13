@@ -305,7 +305,7 @@ Roles + Privileges:
 
 #### Eval Metrics
 
-LLM as Judge \+
+LLM as Judge +
 
 - Accuracy  
 - Latency  
