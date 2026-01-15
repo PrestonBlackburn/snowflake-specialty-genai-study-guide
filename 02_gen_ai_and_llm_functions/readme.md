@@ -2,7 +2,14 @@
 
 ## Apply GenAI + LLM Functions
 
-(possibly small syntax differences here)
+Purpose Built vs Generic LLM Functions
+
+Purpose build:  
+- Generally requires fewer input tokens than the generic LLM Functions  
+
+Generic Functions:  
+- Better for unconstrained tasks, such as "creative" writing  
+
 
 ### Snowflake Cortext
 
@@ -63,7 +70,7 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 );
 ```
 
-With standard OpenAI type output format  
+With standard OpenAI type output format - 
 ```sql
 {
     "choices": [
@@ -80,6 +87,25 @@ With standard OpenAI type output format
         "total_tokens": 32
     }
 }
+```
+
+*note - When [option argument] is not part of COMPLETE, it returns a String*  
+```json
+just a string output...
+```
+
+A empty [option argument] needs to be added if using history as well, even if it is just empty {}:    
+```sql
+SELECT SNOWFLAKE.CORTEX.COMPLETE( 
+    'mistral-large2',  
+    [
+        { 
+            'role': 'user',  
+            'content': <'Prompt that generates an unsafe response'>  
+        }
+    ], 
+    {}  
+);
 ```
 
 `AI_COMPLETE` is also similar:
@@ -131,6 +157,31 @@ Usage With Structured Outputs
 COMPLETE *With Structured Outputs*  
 *These are actually in AI_COMPLETE*  
 Response format is required, can be done in json or pydantic
+
+Example JSON structured output format:
+```sql
+SELECT AI_COMPLETE(
+  model => 'mistral-large2',
+  prompt => 'Review: The movie was visually stunning but the story was weak.',
+  response_format => {
+    'type': 'json',
+    'schema': {
+      'type': 'object',
+      'properties': {
+        'story': { 'type': 'string' },
+        'visuals': { 'type': 'string' }
+      },
+      'required': ['story', 'visuals']
+    }
+  }
+);
+```
+
+Other output parameters:
+- High temperature - increases randomness
+- Low temperature - decreases randomness
+- High top_p - affects diversity, not determinism
+- Large max_tokens - controls length
 
 #### CLASSIFY_TEXT
 
@@ -197,6 +248,40 @@ SELECT SNOWFLAKE.CORTEX.EXTRACT_ANSWER(review_content,
     'What dishes does this review mention?')
 FROM reviews LIMIT 10;
 ```
+
+#### AI_EXTRACT
+- can be used for both text and file objects  
+- Can use both old syntax and new "=>" syntax  
+- Mainly for Classification adjacent tasks where the label is already present in the text  
+
+usage:  
+```sql
+AI_EXTRACT( <text>, <responseFormat> )
+```
+or:    
+```sql
+AI_EXTRACT( file => <file>,
+            responseFormat => <responseFormat> )
+```
+
+Example Format Specification
+```sql
+SELECT AI_EXTRACT(
+  file => TO_FILE('@db.schema.files', 'report.pdf'),
+  responseFormat => {
+    'schema': {
+      'type': 'object',
+      'properties': {
+        'employees': {
+          'description': 'What are the surnames of employees?',
+          'type': 'array'
+        }
+      }
+    }
+  }
+);
+```
+
 #### PARSE_DOCUMENT
 
 Task specific  
@@ -277,6 +362,59 @@ SELECT TO_VARCHAR(
   }  
 }
 ```
+
+#### AI_PARSE_DOCUMENT
+
+Takes in a file object instead of stage + path. Basically the same as `PARSE_DOCUMENT`, but with `TO_FILE()` as input.  
+- designed for ad-hoc document parsing  
+- No model training  
+- Works well for small to medium document volumes  
+- For more complex use cases use **Document AI**
+
+Supported File Types:
+- PDF  
+- PPTX  
+- DOCX  
+- JPEG  
+- JPG  
+- PNG  
+- TIFF  
+- TIF  
+- HTML   
+- TXT   
+
+```sql
+AI_PARSE_DOCUMENT( <file_object>, [ <options> ] )
+```
+
+Examples:  
+```sql
+SELECT AI_PARSE_DOCUMENT (
+    TO_FILE('@docs.doc_stage','research-paper-example.pdf'),
+    {'mode': 'LAYOUT' , 'page_split': true}) AS research_paper_example;
+```
+Response:  
+
+```json
+{
+  "metadata": {
+    "pageCount": 19
+  },
+  "pages": [
+    {
+      "content": ".............",
+      "index": 0
+    },
+    ...
+    {
+      "content": ".............",
+      "index": 4
+    },
+    ...
+  ]
+}
+```
+
 
 #### SENTIMENT
 
@@ -659,6 +797,9 @@ SELECT VECTOR_INNER_PRODUCT( SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-e
 #### VECTOR_COSINE_SIMILARITY
 
 Best when vector length doesn’t matter, just direction, but very good in high dimensional spaces  
+- Ideal for text embeddings
+- Most common choice for semantic similarity
+
 ```sql
 VECTOR_COSINE_SIMILARITY( <vector>, <vector> )
 ```
@@ -671,7 +812,8 @@ SELECT a, VECTOR_COSINE_SIMILARITY(a, [1,2,3]::VECTOR(FLOAT, 3)) AS similarity
 
 #### VECTOR_L1_DISTANCE
 
-Manhattan distance of 2 vectors (stair step)  
+Manhattan distance of 2 vectors (stair step)    
+  - sum of absolute differences  
 Not great if data is already normalized  
 Magnitude sensitive
 
@@ -682,7 +824,7 @@ VECTOR_L1_DISTANCE( <vector>, <vector> )
 #### VECTOR_L2_DISTANCE
 
 #### Euclidean distance of 2 vectors (diagonal)
-
+- square root of squared differences
 ```sql
 VECTOR_L2_DISTANCE( <vector>, <vector> )
 ```
@@ -705,8 +847,9 @@ SELECT SNOWFLAKE.CORTEX.COUNT_TOKENS('llama3-8b', 'embed me plz');
 
 #### TRY_COMPLETE
 
-General purpose  
-Same a complete, but returns `NULL` instead of an error  
+- General purpose   
+- Same a complete, but returns `NULL` instead of an error   
+- Supports structured responses (like instead of `AI_COMPLETE`)  
 ```sql
 SNOWFLAKE.CORTEX.TRY_COMPLETE( <model>, <prompt_or_history> [ , <options> ] )
 ```
@@ -775,6 +918,7 @@ Use Cases:
 
 ### Structured Data
 
+
 ### Cortex Analyst
 
 Need to know yaml format well for the Semantic model    
@@ -832,7 +976,9 @@ tables:
 #### Cortex Analyst Suggested Questions
 
 - Automatically suggests new VQR queries  
-- Suggested based on  - 
+  - If suggested_questions is not provided, Cortex Analyst **auto-generates** suggested questions based on tables, metrics, and dimensions in the semantic model  
+
+- Suggested Query Guidelines:    
   - **High frequency:** Queries similar to the candidate appear frequently.   
   - **Contains interesting semantic information:** Extremely simple queries are removed since they are unlikely to add value.   
   - **Novelty:** No existing verified query looks similar.  
@@ -840,7 +986,10 @@ tables:
 #### Cortex Analyst Custom Instructions
 
 - custom_instructions field   
-- Best Practices   
+  - Guide how Analyst interprets questions   
+  - Clarify business meaning (e.g., CTR definition)   
+  - Ensure consistent answers across users   
+- Best Practices    
   - Be Specific   
   - Start Small   
   - Preview Generated SQL Query   
@@ -969,6 +1118,40 @@ verified_queries:
     verified_by: # Optional: Name of the person who verified the query.
     use_as_onboarding_question:  # Optional: Marks this question as an onboarding question for the end user.
     sql:                         # The SQL query for answering the question
+```
+
+**Verified Queries**   
+To define onboarding questions, you need to mark specific verified queries in the semantic model with the `use_as_onboarding_question` flag. The example below shows how to set this up   
+```yaml
+verified_queries:
+
+- name: "lowest revenue each month"
+  question: For each month, what was the lowest daily revenue and on what date did that lowest revenue occur?
+
+  use_as_onboarding_question: true
+
+  sql: "WITH monthly_min_revenue AS (
+SELECT
+    DATE_TRUNC('MONTH', date) AS month,
+    MIN(daily_revenue) AS min_revenue
+FROM \__daily_revenue
+GROUP BY
+DATE_TRUNC('MONTH', date)
+
+)
+
+SELECT
+    mmr.month,
+    mmr.min_revenue,
+    dr.date AS min_revenue_date
+FROM monthly_min_revenue AS mmr JOIN \__daily_revenue AS dr
+ON mmr.month = DATE_TRUNC('MONTH', dr.date)
+AND mmr.min_revenue = dr.daily_revenue
+ORDER BY mmr.month DESC NULLS LAST"
+
+verified_at: 1715187400
+
+verified_by: user_name
 ```
 
 Example semantic view yaml:  

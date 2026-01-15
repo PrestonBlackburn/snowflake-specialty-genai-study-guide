@@ -1,5 +1,13 @@
 # Section 4: Document AI (12%)
 
+Supports:  
+- Model training  
+- Layout-aware extraction  
+- High-volume, repeatable workloads  
+
+high volume and consistent use cases are fit for Document AI
+
+
 ## Setup Document AI
 
 (Deprecated for AI_EXTRACT)  

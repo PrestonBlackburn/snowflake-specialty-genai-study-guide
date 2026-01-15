@@ -237,13 +237,6 @@ D. `ALTER ACCOUNT UNSET CORTEX_ANALYST;`
 
 <br/>
 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-
 
 # Answer Key
 
@@ -268,12 +261,5 @@ D. `ALTER ACCOUNT UNSET CORTEX_ANALYST;`
 16. C
 17. B
 18. B
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-
 
 </details>
