@@ -282,6 +282,8 @@ SELECT AI_EXTRACT(
 );
 ```
 
+*note - if extracting pages, each page counts a 970 tokens*
+
 #### PARSE_DOCUMENT
 
 Task specific  

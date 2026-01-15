@@ -112,7 +112,10 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
     }  
 );
 ```
-- Charges based on token usage for gaurdrails (input tokens)
+- Charges based on token usage for gaurdrails  
+  - Only input tokens are billed  
+  - Guard cost is billed in addition to the COMPLETE/AI_COMPLETE tokens  
+  - Guard tokens are based on the output of COMPLETE/AI_COMPLETE (the output gets fed into guard)  
 - Guardrails based on llama guard model
 - Guardrails options: true/false/True/False/1/0
 - Can view usage in usage history table
@@ -131,6 +134,42 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 
 ## Monitor + Optimize Snowflake Cortex Cost
 
+Cortex Function Cost By Input + Output Tokens, anything that generates output text, ex:  
+- SUMMARIZE/AI_SUMMARIZE  
+- COMPLETE/AI_COMPLETE  
+- AI_CLASSIFY  
+- TRANSLATE/AI_TRANSLATE  
+Cortex Functions With Only Input Costs, ex:  
+- AI_EMBED  
+- EMBED_TEXT_768  
+- AI_SIMILARITY  
+
+cost for both input and output tokens
+
+
+Cortex REST API Costs:  
+- Normal token cost  
+- Does not require a virtual warehouse   
+
+The number of tokens per image depends on the architecture of the vision model, ex:  
+- Anthropic (claude) models’ formula is roughly: tokens = (Width in pixels x Height in pixels) / 750.  
+
+Warehouse Usage Note:  
+- Snowflake recommends using a warehouse size no larger than MEDIUM when calling Snowflake Cortex AI Functions  
+
+**Prompt Caching**
+- Re-use previously used context in KV cache
+- REST API supports caching for all latest OpenAI and Anthropic models 
+- **OpenAI**  
+  - prompts with >1024 tokens automatically cache  
+  - Cache writes: no cost  
+  - Cache reads: charged at 0.25x or 0.50x price of original input  
+- **Anthropic**  
+  - Must be enabled in the request  
+  - prompts must be over 1024 tokens  
+  - Cache writes: charged at 1.25x the price of the original input pricing  
+  - Cache reads: charged at 0.1x the price of the original input pricing  
+ 
 ### Cortex Search
 
 [https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-costs](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-costs)
@@ -169,6 +208,16 @@ CREATE OR REPLACE CORTEX SEARCH SERVICE mysvc
   INITIALIZE = ON_SCHEDULE  
 AS SELECT * FROM support_db.public.transcripts_etl;
 ```
+
+Limitations:
+- Base table <100M rows
+- **Throughput and rate limiting** - returns a 429 HTTP status code if a client sends requests too quickly or if the service becomes overloaded  
+- Query constructs - Same limitations as Dynamic Tables  
+- Data retention - Same as Dynamic Tables   
+- Cloning - Not supported  
+- Table immutability - require tables they access aren’t modified or dropped. To safely update tables used by a Cortex Search Service, stop the service before making your changes.  
+
+
 
 ### Cortex Analyst
 
@@ -271,6 +320,10 @@ SELECT * FROM TABLE(
 model/view type: “FILE_ON_STAGE” or “SEMANTIC_VIEW”   
 Name: fully qualified stage path, or semantic view name  
 
+#### SNOWFLAKE.LOCAL.AI_OBSERVABILITY_EVENTS
+Raw event data for AI Observability  
+
+
 #### CORTEX_ANALYST_USAGE_HISTORY
 
 Aggregated 1 hr, analyst credits used, metadata  
@@ -290,6 +343,11 @@ Billing for provisioned throughputs
 
 #### CORTEX_AISQL_USAGE_HISTORY
 Include Input/output token granularity for queries  
+
+
+*Note For Document AI usage See **METERING_DAILY_HISTORY***
+or
+
 
 ## Use Snowflake AI Observability Tools
 

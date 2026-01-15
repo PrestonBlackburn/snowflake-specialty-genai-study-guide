@@ -1,10 +1,25 @@
 # Section 4: Document AI (12%)
+   
+When to Use:  
+- You want to turn unstructured data from documents into structured data in tables.  
+- You want to create pipelines for continuous processing of new documents of a specific type.  
+- Business users with domain knowledge prepare the model, and the data engineers working with SQL prepare pipelines to automate the processing of new documents.  
 
 Supports:  
 - Model training  
 - Layout-aware extraction  
 - High-volume, repeatable workloads  
-
+  
+Two Phases of Usage:
+- Model build phase - represents a single type of a document or a use case  
+- Extract Info phase - continuous document processing pipeline
+  
+Model builds include all artifacts:  
+- the model  
+- the data values to be extracted  
+- the documents uploaded to test and train the model   
+  
+  
 high volume and consistent use cases are fit for Document AI
 
 
@@ -34,6 +49,7 @@ Privileges:
 - CREATE MODEL on schema  
 - CREATE STREAM, TABLE, TASK, VIEW  
 - EXECUTE TASK  
+*note - even accountadmin doesn't have **database role** access by default, and won't be able to create the document ai model even though it can grant the database role to itself (opt-in feature)*  
 
 Document AI Usage:
 
@@ -81,6 +97,11 @@ Privileges To Create **Processing Pipelines**
 ### Train The Model
 
 - 1 model per document type/task
+
+Training data should:
+- Reflect real use cases
+- Include layout and data diversity
+- Represent real business scenarios
 
 ### Requirements (Format Size + Limits)
 
@@ -197,10 +218,18 @@ Required Privileges, Create A Document AI Model Build:
 
 Cost Sources:
 
-- **AI Services Compute** - Extract info with the `<model_build_name>!PREDICT` method (tokens cost)  
-  - Based on - number of pages, number of documents, page density, number of data values  
-- **Virtual Warehouse Compute** - Running queries, retrieving data, includes `<model_build_name>!PREDICT`   
-- **Storage** - uploaded documents to Document AI UI (stored in account). Stages for documents  
+- **AI Services Compute**  
+  - Extraction with the `<model_build_name>!PREDICT` method (tokens cost)   
+  - Based on - number of pages, number of documents, page density, number of data values
+  - Model Build (Training/Fine Tuning)      
+- **Virtual Warehouse Compute**  
+  - Running queries   
+  - retrieving data    
+  - includes `<model_build_name>!PREDICT`      
+- **Storage**  
+  - uploaded documents to Document AI UI (stored in account)   
+  - Stages for documents    
+  - Table for results  
 
 Warehouse Sizing: Snowflake recommends using an X-Small, Small, or Medium warehouse. Scaling up the warehouse does not increase the speed of query processing, but might result in unnecessary costs.
 
@@ -209,3 +238,6 @@ Monitor Costs:
 SELECT * FROM SNOWFLAKE.ORGANIZATION_USAGE.METERING_DAILY_HISTORY  
   WHERE service_type ILIKE '%ai_services%';
 ```
+
+Usage Notes:
+- If the Document AI model does not find an answer in the document, the model does not return a **value key**. However, it does return the **score key**, which indicates *how confident the model is that the document does not contain the answer.*  
