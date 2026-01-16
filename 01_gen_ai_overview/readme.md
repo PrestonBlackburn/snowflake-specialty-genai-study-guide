@@ -65,6 +65,7 @@ Allowed models can be managed at the Account level with **CORTEX_MODELS_ALLOWLIS
 `ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'None';`  
 `ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'mistral-large2,llama3.1-70b';`  
 `ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'All';`  
+Account parameters: https://docs.snowflake.com/en/sql-reference/parameters#cortex-models-allowlist  
 
 
 *Note - For account level parameters, not even the Accountadmin role can access the disabled features. However, the Accountadmin role can also turn the features back on*  

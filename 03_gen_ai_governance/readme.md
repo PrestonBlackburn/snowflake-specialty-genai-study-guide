@@ -10,6 +10,7 @@ Restricting Access To Specific Models
 Steps for Fine Grained Control:
 
 1. To use RBAC exclusively, set `CORTEX_MODELS_ALLOWLIST` to 'None'.   
+  - Default values for `CORTEX_MODELS_ALLOWLIST` is 'ALL'  
 2. create model objects in the `SNOWFLAKE.MODELS` schema that *represent* the Cortex models  
 3. Refresh available models:  `CALL SNOWFLAKE.MODELS.CORTEX_BASE_MODELS_REFRESH();`   
    1. Optional: `SHOW MODELS IN SNOWFLAKE.MODELS;`    
@@ -207,6 +208,24 @@ CREATE OR REPLACE CORTEX SEARCH SERVICE mysvc
   EMBEDDING_MODEL = 'snowflake-arctic-embed-l-v2.0'  
   INITIALIZE = ON_SCHEDULE  
 AS SELECT * FROM support_db.public.transcripts_etl;
+```
+
+Query the service:
+```sql
+SELECT PARSE_JSON(
+  SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+      'my_search_service',
+      '{
+         "query": "preview query",
+         "columns":[
+            "col1",
+            "col2"
+         ],
+         "filter": {"@eq": {"col1": "filter value"} },
+         "limit":10
+      }'
+  )
+)['results'] as results;
 ```
 
 Limitations:
