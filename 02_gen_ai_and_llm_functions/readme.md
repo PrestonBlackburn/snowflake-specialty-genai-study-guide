@@ -14,7 +14,6 @@ Generic Functions:
 ### Snowflake Cortext
 
 Function Call Requirements (generally):
-
 - Usage on `SNOWFLAKE.CORTEX` schema  
 - Is in -> `SNOWFLAKE.CORTEX_USER` database role
 
@@ -176,12 +175,15 @@ SELECT AI_COMPLETE(
   }
 );
 ```
+- Structured output works with any model
 
 Other output parameters:
 - High temperature - increases randomness
 - Low temperature - decreases randomness
 - High top_p - affects diversity, not determinism
 - Large max_tokens - controls length
+
+Also - can access through Python Lib
 
 #### CLASSIFY_TEXT
 
@@ -231,6 +233,11 @@ SELECT AI_CLASSIFY(
   ['travel', 'cooking', 'reading', 'driving'],
   {'output_mode': 'multi'}
 );
+```
+```json
+{
+  "labels": ["travel", "cooking"]
+};
 ```
 
 #### EXTRACT_ANSWER
@@ -288,7 +295,7 @@ SELECT AI_EXTRACT(
 
 Task specific  
 OCR Necessary if text only  
-LAYOUT needed if tables data is needed  
+LAYOUT needed if extracting table data   
 ```sql
 SNOWFLAKE.CORTEX.PARSE_DOCUMENT( '@<stage>', '<path>', [ <options> ] )
 ```
@@ -331,17 +338,21 @@ Examples:
  }
 ```
 
-Also an output option:  
-"errorInformation": Contains error information if document can’t be parsed  
-And metadata for page count if splitting on pages  
-```sql
-SELECT  
-SELECT TO_VARCHAR(
-    SNOWFLAKE.CORTEX.PARSE_DOCUMENT(
+Also an output option: 
+```json
+{
+  "errorInformation": "Contains error information if document can’t be parsed" 
+}
+```
+*And metadata for page count if splitting on pages*
+
+```sql 
+SELECT
+  TO_VARCHAR (
+    SNOWFLAKE.CORTEX.PARSE_DOCUMENT (
         '@PARSE_DOCUMENT.DEMO.documents',
         'document_1.pdf',
-        {'mode': 'OCR'})
-    ) AS OCR;
+        {'mode': 'OCR', 'page_split': TRUE} ) ) AS MULTIPAGE;
 ```
 ```json
 {  
@@ -442,7 +453,8 @@ SELECT SNOWFLAKE.CORTEX.SENTIMENT('A tourist's delight, in low urban light,
 Also a `ENTITY_SENTIMENT` function where you can pass sentiment categories  
 The newer `AI_SENTIMENT` also can be passed optional list of sentiment categories  
 - These other functions privide string responses `positive`, `negative`, `unknown` instead of a `FLOAT` range 
-- Always includes "overall" sentiment category
+- Always includes "overall" sentiment category  
+
 #### SUMARIZE
 
 Task specific  
@@ -763,6 +775,68 @@ SNOWFLAKE.CORTEX.FINETUNE(
 
 ### Cortex Agent
 
+Best Practices:  
+- Define your agent's purpose  
+- Favor narrowly-scoped specialized agents  
+- Map key use cases to tools'  
+- Be explicit about tool inputs  
+- Improve orchestration instructions and tool descriptions  
+- Use agent traces to identify latency bottlenecks  
+- Pre-define verified queries  
+- Make queries performant  
+
+![Cortex Agent Diagram](https://www.snowflake.com/content/dam/snowflake-site/developers/guides/best-practices-to-building-cortex-agents/snowflake-intelligence-agent-architecture.png)
+
+```sql
+CREATE OR REPLACE AGENT myagent
+  COMMENT = 'agent level comment'
+  PROFILE = '{"display_name": "My Business Assistant", "avatar":  "business-icon.png", "color": "blue"}'
+  FROM SPECIFICATION
+  $$
+  models:
+    orchestration: claude-4-sonnet
+
+  orchestration:
+    budget:
+      seconds: 30
+      tokens: 16000
+
+  instructions:
+    response: "You will respond in a friendly but concise manner"
+    orchestration: "For any revenue question use Analyst; for policy use Search"
+    system: "You are a friendly agent that helps with business questions"
+    sample_questions:
+      - question: "What was our revenue last quarter?"
+        answer: "I'll analyze the revenue data using our financial database."
+
+  tools:
+    - tool_spec:
+        type: "cortex_analyst_text_to_sql"
+        name: "Analyst1"
+        description: "Converts natural language to SQL queries for financial analysis"
+    - tool_spec:
+        type: "cortex_search"
+        name: "Search1"
+        description: "Searches company policy and documentation"
+    - tool_spec:
+        type: "data_to_chart"
+        name: "data_to_chart"
+        description: "Generates visualizations from data"
+
+  tool_resources:
+    Analyst1:
+      semantic_view: "db.schema.semantic_view"
+    Search1:
+      name: "db.schema.service_name"
+      max_results: "5"
+      filter:
+        "@eq":
+          region: "North America"
+      title_column: "<title_name>"
+      id_column: "<column_name>"
+  $$;
+```
+
 ### Vector Functions
 
 With python, we can just use lists  
@@ -935,8 +1009,8 @@ Considerations For Semantic Models
 
 #### Cortex Analyst Verified Query Repository (VQR) 
 
-- Improve accuracy + trustworthiness  
-- 
+- Improve accuracy + trustworthiness   
+- Also suggested based on usage
 
 #### Integration With Cortex Search - 
 
@@ -978,7 +1052,7 @@ tables:
 #### Cortex Analyst Suggested Questions
 
 - Automatically suggests new VQR queries  
-  - If suggested_questions is not provided, Cortex Analyst **auto-generates** suggested questions based on tables, metrics, and dimensions in the semantic model  
+- Cortex Analyst can **auto-generate** suggested questions based on tables, metrics, and dimensions in the semantic model  
 
 - Suggested Query Guidelines:    
   - **High frequency:** Queries similar to the candidate appear frequently.   
@@ -1179,7 +1253,11 @@ st.chat_message
 
 ### Setup The Snowflake Environment
 
+(see 03_gen_ai_governance)
+
 ### Invoke Cortex Functions Within Application Code
+
+(see REST API section)
 
 ### Chat Conversations
 
